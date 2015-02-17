@@ -1,11 +1,3 @@
-//
-//  CamSnapper.swift
-//  lolcommits
-//
-//  Created by Matthew Rothenberg on 2/9/15.
-//  Copyright (c) 2015 Matthew Rothenberg. All rights reserved.
-//
-
 import Foundation
 import AVFoundation
 
@@ -76,7 +68,7 @@ class CamSnapper {
             return imageData
         }
         
-        //shouldnt get here //TODO: make cleaner
+        //shouldnt get here //TODO: make this cleaner
         return nil
     }
     
