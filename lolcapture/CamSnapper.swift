@@ -12,20 +12,21 @@ import AVFoundation
 class CamSnapper {
     
     /// Returns a list of devices that are capable of capturing images
-    func compatibleDevices() -> [(id: String, name: String)] {
+    class func compatibleDevices() -> [(id: String, name: String)] {
         let devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo) as [AVCaptureDevice]
         return devices.map { ($0.uniqueID, $0.localizedName) }
     }
     
     /// What is the currently preferred capture device?
-    func preferredDevice() -> AVCaptureDevice? {
+    private class func preferredDevice() -> AVCaptureDevice? {
         // TODO: need to figure out wtf is up with this being implicitly unwrapped
         // I mean it can be nil right? This will all change in Swift 1.2 I guess assuming
         // AVFoundation is updated with Obj-C nullable properties.
         return AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
     }
     
-    func capture() -> NSData? {
+    /// Do the main capture!
+    class func capture() -> NSData? {
         let camera = preferredDevice()
         let captureSession = AVCaptureSession()
         // AVCaptureDevicInput is a failable initializer.. so in theory this should catch failure?

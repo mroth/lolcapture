@@ -23,7 +23,7 @@ class LOLImage {
     var desiredFinalSize: CGSize {
         return CGSize(width: desiredFinalWidth, height: desiredFinalHeight)
     }
-    
+
     // instance vars for the messages
     var topMessage: String?
     var bottomMessage: String?
