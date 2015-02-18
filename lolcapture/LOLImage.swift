@@ -10,8 +10,8 @@ class LOLImage {
     let marginSize: CGFloat = 10.0
     
     // what size the final image should be after resizing and cropping
-    let desiredFinalWidth:  CGFloat = 640.0 // 960.0 would be native on iMac after cropping
-    let desiredFinalHeight: CGFloat = 480.0 // 720.0 would be native on iMac after cropping
+    let desiredFinalWidth:  CGFloat = 640.0 // 960.0 would be native on new iMac after cropping
+    let desiredFinalHeight: CGFloat = 480.0 // 720.0 would be native on new iMac after cropping
     var desiredFinalSize: CGSize {
         return CGSize(width: desiredFinalWidth, height: desiredFinalHeight)
     }
@@ -23,7 +23,7 @@ class LOLImage {
     
     init(imageData: NSData) {
         // TODO: want to init from whatever the best generic image representation is
-        // that way we are more flexible w/r/t whatever comes out of camsnap and other shit
+        // that way we are more flexible w/r/t whatever comes out of imagesnap or other stuff
         self.image = NSImage(data: imageData)
         
         // TODO: remove fake init data!
@@ -37,7 +37,7 @@ class LOLImage {
         self.bottomMessage = gitMsg
     }
     
-    
+    /// the raw image resized and cropped to defaults
     func resizedImage() -> NSImage {
         return resizeImageToFill(self.image, targetSize: self.desiredFinalSize)
     }
@@ -51,10 +51,6 @@ class LOLImage {
         let heightRatio = targetSize.height / imgSize.height
         println("DEBUG[resize]: finding widthRatio: \(widthRatio), heightRatio: \(heightRatio)")
         
-        //let scaleRatio = max(widthRatio, heightRatio)
-        //let newSize = CGSizeMake(imgSize.width * scaleRatio, imgSize.height * scaleRatio)
-        //println("new size before cropping will be: \(newSize)")
-        
         // okay, so what we essentially need to do is make a NSRect of the appropriate size to precrop the image
         // to the desired aspect ratio, so we can use it as the contextual srcRect in the actual resize operation
         var croppingSize: CGSize
@@ -66,17 +62,16 @@ class LOLImage {
             croppingSize = CGSize(width: imgSize.width, height: imgSize.height)
         }
         
-        // let widthDiff = imgSize.width - croppingSize.width
-        // let heightDiff = imgSize.height - croppingSize.height
         let croppingRect = NSRect(
-            x: (imgSize.width  - croppingSize.width)/2,   // from difference in width
-            y: (imgSize.height - croppingSize.height)/2,  // from difference in height
+            x: (imgSize.width  - croppingSize.width)/2,   // half the difference in width
+            y: (imgSize.height - croppingSize.height)/2,  // half the difference in height
             width: croppingSize.width,
             height: croppingSize.height)
         
         println("DEBUG[resize]: using croppingRect: \(croppingRect)")
         
-        // OMG WILL THIS WORK?? IT WILLLLLLLLLLLL (not what i pasted before but my new version oh yeah suckit internet
+        // do actual resize via custom drawingHandler
+        // again need to avoid .lockFocus type stuff because it causes unexpected results on Retina now
         let resizingImage = NSImage(size: targetSize, flipped: false, drawingHandler: { frame in
             image.drawInRect(frame, fromRect: croppingRect, operation: .CompositeOverlay, fraction: 1.0)
             return true
@@ -87,7 +82,6 @@ class LOLImage {
     
     private func compositeText() -> NSImage {
         /// a local copy of whatever image data we need
-//         let img = self.image
         let img = resizedImage()
         
         /// what is our available caption width?
@@ -101,13 +95,13 @@ class LOLImage {
             
             img.drawInRect(frame)
             
-            if let topText = self.formattedTextForTop() {
+            if let topText = self.formattedTextForTopMessage() {
                 let neededLinesToDraw = ceil(topText.size.width / availableWidth)
                 let topRect = NSRect(x: self.marginSize, y: 0, width: availableWidth, height: frame.height)
                 topText.drawInRect(topRect)
             }
             
-            if let bottomText = self.formattedTextForBottom() {
+            if let bottomText = self.formattedTextForBottomMessage() {
                 let neededLinesToDraw = ceil(bottomText.size.width / availableWidth)
                 let neededHeightToDraw = bottomText.size.height * neededLinesToDraw
                 let botRect = NSRect(x: self.marginSize, y: 0, width: availableWidth, height: neededHeightToDraw)
@@ -120,13 +114,16 @@ class LOLImage {
         return compositedImage
     }
     
-    /// figure out how to draw the bottom message
+    /// formatted text for the bottomMessage
     /// ...which needs to know its rendered size so it can be bottom aligned
     /// ...and is long so it will probably wrap across multiple lines
-    private func formattedTextForBottom() -> NSAttributedString? {
+    private func formattedTextForBottomMessage() -> NSAttributedString? {
         if let msg = self.bottomMessage {
             
-            let pStyle = NSMutableParagraphStyle()
+            // TODO: need to get the line-height reduced but this doesnt
+            //       seem to work in conjunction with drawInRect cropping.
+            //
+            //let pStyle = NSMutableParagraphStyle()
             //pStyle.lineSpacing = -9
             //pStyle.lineHeightMultiple = 0.5
             
@@ -145,10 +142,8 @@ class LOLImage {
         }
     }
 
-    /// figure out how to draw the top message.
-    /// this one is easier since its a fixed length of chars (for now) and top aligned.
-    /// but does need to be right aligned.
-    private func formattedTextForTop() -> NSAttributedString? {
+    /// formatted text for the topMessage
+    private func formattedTextForTopMessage() -> NSAttributedString? {
         if let msg = self.topMessage {
             let rightAlignParagraphStyle = NSMutableParagraphStyle()
             rightAlignParagraphStyle.alignment = NSTextAlignment(rawValue: 1)! //NSRightTextAlignment, swift cant seem to find?

@@ -11,8 +11,8 @@ class CamSnapper {
     
     /// What is the currently preferred capture device?
     private class func preferredDevice() -> AVCaptureDevice? {
-        // TODO: need to figure out wtf is up with this being implicitly unwrapped
-        // I mean it can be nil right? This will all change in Swift 1.2 I guess assuming
+        // TODO: need to figure out wtf is up with this being implicitly unwrapped.
+        // I mean it can legit be nil right? This will all change in Swift 1.2 I guess -- assuming
         // AVFoundation is updated with Obj-C nullable properties.
         return AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
     }
@@ -22,8 +22,10 @@ class CamSnapper {
         let camera = preferredDevice()
         let captureSession = AVCaptureSession()
         // AVCaptureDevicInput is a failable initializer.. so in theory this should catch failure?
+        // ...in which case the error proc isn't really needed.
         if let cameraInput = AVCaptureDeviceInput(device: camera, error: nil) {
             
+
             // begin configuration block
             captureSession.beginConfiguration()
             
@@ -62,13 +64,15 @@ class CamSnapper {
                 }
             )
             
-            dispatch_group_wait(captureGroup, DISPATCH_TIME_FOREVER) //TODO: not forever
+            dispatch_group_wait(captureGroup, DISPATCH_TIME_FOREVER) //FIXME: let's not wait forever
             captureSession.stopRunning()
             let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(imageBuffer)
             return imageData
         }
         
-        //shouldnt get here //TODO: make this cleaner
+        // we shouldn't ever get here unless we can't get camera input.
+        // its unfortunate this moves the results of the failure condition way down here but that seems
+        // to be the side-effect of using "if let" idomatic Swift.  Should look into this more.
         return nil
     }
     
