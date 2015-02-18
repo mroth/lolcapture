@@ -1,17 +1,22 @@
 import Foundation
 
-// TODO: set a sane default
-// TODO: override from CLI
-let filePath = "/Users/mroth/Desktop/test-capture.jpg"
-
-var testMode  = false
-var debugMode = false
-
 let programName     = "lolcapture"
 let programVersion  = "0.0.1 dev"
 var programIdentifier: String {
     return "\(programName) \(programVersion)"
 }
+
+// TODO: set a sane default
+// TODO: override from CLI
+/// the path where the final image will be stored (including filename)
+var filePath = "/Users/mroth/Desktop/test-capture.jpg"
+
+/// default delay to pass on for warmup in capture process
+var delay = 0.75
+
+
+var testMode  = false
+var debugMode = false
 
 // msg/SHA to be used in test mode when nothing is parsed
 let testMessage = "this is a test message i didnt really commit something"
@@ -30,7 +35,7 @@ var finalSha: String? {
     return (testMode && parsedSha == nil) ? testSha : parsedSha
 }
 
-/// Logs a debug message to STDERR if DEBUG_MODE=true.
+/// Utility function to logs a debug message to STDOUT if DEBUG_MODE=true.
 func debug(group: String, msg: String) {
     if debugMode {
         println( "DEBUG[\(group)]:\t\(msg)" )
@@ -61,8 +66,9 @@ func processArgs(args: [String]) {
             println("  -v, --version" + sep + "Show the \(programName) version")
             println("  -l, --list"    + sep + "List available capture devices")
             println("  --test"        + sep + "Create fake msg/SHA values when none provided")
-            println("  --msg=<MSG>"   + sep + "Message to be displayed (across bottom of image)")
-            println("  --sha=<SHA>"   + sep + "Hash to be displayed (on top right of image)")
+            println("  --msg=<MSG>"   + sep + "Message to be displayed across bottom of image")
+            println("  --sha=<SHA>"   + sep + "Hash to be displayed on top right of image")
+            println("  --delay=<N>"   + sep + "Delay capture by N seconds (default: \(delay))")
             println("  --debug"       + sep + "Enable DEBUG output")
             exit(0)
 
@@ -83,6 +89,13 @@ func processArgs(args: [String]) {
 
         case "--sha":
             parsedSha = argval
+            
+        case "--delay":
+            if let delayStr = argval {
+                if let delayNum = NSNumberFormatter().numberFromString(delayStr) {
+                    delay = delayNum.doubleValue
+                }
+            }
 
         case "--debug":
             debugMode = true
@@ -96,7 +109,7 @@ func processArgs(args: [String]) {
 func runCapture() {
     println("📷 lolcommits is preserving this moment in history.")
 
-    if let imagedata = CamSnapper.capture() {
+    if let imagedata = CamSnapper.capture(warmupDelay: delay) {
         let renderedImage = LOLImage(imageData: imagedata, bottomMessage: finalMessage, topMessage: finalSha).render()
         renderedImage.writeToFile(filePath, atomically: true)
         debug("main", "LOL! image written to \(filePath)")

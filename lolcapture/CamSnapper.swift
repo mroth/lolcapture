@@ -18,7 +18,10 @@ class CamSnapper {
     }
     
     /// Do the main capture!
-    class func capture() -> NSData? {
+    ///
+    /// :param: warmupDelay how long to delay capture to give the camera extra time to warmup (default: 0.0)
+    /// :returns: The captured image data serialized to JPEG encoding.
+    class func capture(warmupDelay: NSTimeInterval = 0.0) -> NSData? {
         let camera = preferredDevice()
         let captureSession = AVCaptureSession()
         
@@ -50,6 +53,11 @@ class CamSnapper {
             let captureGroup = dispatch_group_create()
             dispatch_group_enter(captureGroup)
             debug("capture", "starting capture task")
+            
+            // try sleeping on this thread for a delay to let camera warm up better
+            debug("capture", "sleeping for \(warmupDelay) sec. to allow camera to warmup")
+            NSThread.sleepForTimeInterval(warmupDelay)
+            debug("capture", "warmup complete")
             
             // make a local optional var to hold the buffer after async capture
             var imageBuffer: CMSampleBuffer? = nil
