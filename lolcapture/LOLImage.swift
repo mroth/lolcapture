@@ -45,11 +45,11 @@ class LOLImage {
     /// utility function: resizes a given image to fill target size, while preserving aspect ratio
     private func resizeImageToFill(image: NSImage, targetSize: CGSize) -> NSImage {
         let imgSize = image.size
-        println("DEBUG[resize]: starting, image size: \(imgSize), target size: \(targetSize)")
+        debug("resize", "starting, image size: \(imgSize), target size: \(targetSize)")
         
         let widthRatio  = targetSize.width  / imgSize.width
         let heightRatio = targetSize.height / imgSize.height
-        println("DEBUG[resize]: finding widthRatio: \(widthRatio), heightRatio: \(heightRatio)")
+        debug("resize", "finding widthRatio: \(widthRatio), heightRatio: \(heightRatio)")
         
         // okay, so what we essentially need to do is make a NSRect of the appropriate size to precrop the image
         // to the desired aspect ratio, so we can use it as the contextual srcRect in the actual resize operation
@@ -68,7 +68,7 @@ class LOLImage {
             width: croppingSize.width,
             height: croppingSize.height)
         
-        println("DEBUG[resize]: using croppingRect: \(croppingRect)")
+        debug("resize", "using croppingRect: \(croppingRect)")
         
         // do actual resize via custom drawingHandler
         // again need to avoid .lockFocus type stuff because it causes unexpected results on Retina now
@@ -170,8 +170,8 @@ class LOLImage {
 
         let imageRep = NSBitmapImageRep(data: compositedImage.TIFFRepresentation!)!
         
-        println("DEBUG[render]: imageRep.size (in points): \(imageRep.size)")
-        println("DEBUG[render]: final pixel dimensions: \(imageRep.pixelsWide)x\(imageRep.pixelsHigh)")
+        debug("render", "imageRep.size (in points): \(imageRep.size)")
+        debug("render", "final pixel dimensions: \(imageRep.pixelsWide)x\(imageRep.pixelsHigh)")
         
         let imageData = imageRep.representationUsingType(NSBitmapImageFileType.NSJPEGFileType, properties: [NSImageCompressionFactor: 0.8])
         return imageData!

@@ -21,6 +21,7 @@ class CamSnapper {
     class func capture() -> NSData? {
         let camera = preferredDevice()
         let captureSession = AVCaptureSession()
+        
         // AVCaptureDevicInput is a failable initializer.. so in theory this should catch failure?
         // ...in which case the error proc isn't really needed.
         if let cameraInput = AVCaptureDeviceInput(device: camera, error: nil) {
@@ -48,7 +49,7 @@ class CamSnapper {
             // since this is a rare occassion where we WANT to block the main thread.
             let captureGroup = dispatch_group_create()
             dispatch_group_enter(captureGroup)
-            println("DEBUG[capture]: starting capture task")
+            debug("capture", "starting capture task")
             
             // make a local optional var to hold the buffer after async capture
             var imageBuffer: CMSampleBuffer? = nil
@@ -58,7 +59,7 @@ class CamSnapper {
             imageOutput.captureStillImageAsynchronouslyFromConnection(
                 videoChannel,
                 completionHandler:{(buffer: CMSampleBuffer!, err: NSError!) in
-                    println("DEBUG[capture]: finishing capture task")
+                    debug("capture", "finishing capture task")
                     imageBuffer = buffer
                     dispatch_group_leave(captureGroup)
                 }
