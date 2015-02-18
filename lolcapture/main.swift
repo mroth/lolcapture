@@ -1,13 +1,33 @@
 import Foundation
 
+// TODO: set a sane default
+// TODO: override from CLI
 let filePath = "/Users/mroth/Desktop/test-capture.jpg"
-//var testMode  = false
+
+var testMode  = false
 var debugMode = false
 
 let programName     = "lolcapture"
 let programVersion  = "0.0.1 dev"
 var programIdentifier: String {
     return "\(programName) \(programVersion)"
+}
+
+// msg/SHA to be used in test mode when nothing is parsed
+let testMessage = "this is a test message i didnt really commit something"
+var testSha: String {
+    return NSUUID().UUIDString.componentsSeparatedByString("-")[0].lowercaseString
+}
+
+// msg/SHA parsed from the CLI arguments
+var parsedMessage, parsedSha: String?
+
+// calculated message/SHA values to use
+var finalMessage: String? {
+    return (testMode && parsedMessage == nil) ? testMessage : parsedMessage
+}
+var finalSha: String? {
+    return (testMode && parsedSha == nil) ? testSha : parsedSha
 }
 
 /// Logs a debug message to STDERR if DEBUG_MODE=true.
@@ -20,36 +40,53 @@ func debug(group: String, msg: String) {
 /// Process arguments for the CLI
 func processArgs(args: [String]) {
     for arg in args {
-        switch arg {
-            
+
+        let splitArg = arg.componentsSeparatedByString("=")
+        var argkey: String  = splitArg[0]
+        var argval: String? = splitArg.count > 1 ? splitArg[1] : nil
+        //debug("m", "key: \(key)")
+        //debug("m", "val: \(val)")
+
+        switch argkey {
+
         case "-h", "--help":
-            // wow, no multiline strings in Swift? Really?!
+            // wow, no multiline string literals in Swift? Really?!
+            let sep = "\t\t\t"
             println("Usage: \(programName) [options]")
             println("")
             println("Experimental one-step webcam capture and text composition for lolcommits.")
             println("")
             println("Options:")
-            println("  -h, --help" + "\t\t\t" + "Show this help message and exit")
-            println("  --version"  + "\t\t\t" + "Show the \(programName) version")
-            println("  -l, --list" + "\t\t\t" + "List available capture devices")
-            println("  --debug"    + "\t\t\t" + "Enable DEBUG output")
+            println("  -h, --help"    + sep + "Show this help message and exit")
+            println("  -v, --version" + sep + "Show the \(programName) version")
+            println("  -l, --list"    + sep + "List available capture devices")
+            println("  --test"        + sep + "Create fake msg/SHA values when none provided")
+            println("  --msg=<MSG>"   + sep + "Message to be displayed (across bottom of image)")
+            println("  --sha=<SHA>"   + sep + "Hash to be displayed (on top right of image)")
+            println("  --debug"       + sep + "Enable DEBUG output")
             exit(0)
-        
-        case "--version":
+
+        case "-v", "--version":
             println(programIdentifier)
             exit(0)
-        
+
         case "-l", "--list":
             let devices = CamSnapper.compatibleDevices()
             println(devices)
             exit(0)
-        
-        //case "-t", "--test":
-        //    testMode = true
-            
+
+        case "-t", "--test":
+            testMode = true
+
+        case "--msg":
+            parsedMessage = argval
+
+        case "--sha":
+            parsedSha = argval
+
         case "--debug":
             debugMode = true
-            
+
         default:
             println("Unknown argument: \(arg)")
         }
@@ -58,11 +95,13 @@ func processArgs(args: [String]) {
 
 func runCapture() {
     println("📷 lolcommits is preserving this moment in history.")
-    
+
     if let imagedata = CamSnapper.capture() {
-        let renderedImage = LOLImage(imageData: imagedata).render()
+        let renderedImage = LOLImage(imageData: imagedata, bottomMessage: finalMessage, topMessage: finalSha).render()
         renderedImage.writeToFile(filePath, atomically: true)
         debug("main", "LOL! image written to \(filePath)")
+
+        // TODO: if in test mode, open the image for preview immediately
     }
 }
 

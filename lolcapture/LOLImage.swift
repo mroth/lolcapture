@@ -22,19 +22,14 @@ class LOLImage {
     
     
     init(imageData: NSData) {
-        // TODO: want to init from whatever the best generic image representation is
-        // that way we are more flexible w/r/t whatever comes out of imagesnap or other stuff
         self.image = NSImage(data: imageData)
-        
-        // TODO: remove fake init data!
-        self.topMessage = "d3adb33f69"
-        self.bottomMessage = "now is the time for all good men to come to the aide of their country. lorem ipsum hipsterium fixie PBR blanc nolit et tempus fugit admin."
     }
     
-    init(imageData: NSData, gitMsg: String, gitSHA: String) {
+    /// initialize with values for the message strings to composite
+    init(imageData: NSData, bottomMessage: String?, topMessage: String?) {
         self.image = NSImage(data: imageData)
-        self.topMessage = gitSHA
-        self.bottomMessage = gitMsg
+        self.topMessage = topMessage
+        self.bottomMessage = bottomMessage
     }
     
     /// the raw image resized and cropped to defaults
