@@ -38,7 +38,9 @@ var finalSha: String? {
 /// Utility function to logs a debug message to STDOUT if DEBUG_MODE=true.
 func debug(group: String, msg: String) {
     if debugMode {
-        println( "DEBUG[\(group)]:\t\(msg)" )
+        let stderr = NSFileHandle.fileHandleWithStandardError()
+        let debugStr = "DEBUG[\(group)]:\t\(msg)\n"
+        stderr.writeData( debugStr.dataUsingEncoding(NSUTF8StringEncoding)! )
     }
 }
 
