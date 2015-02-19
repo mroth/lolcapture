@@ -117,9 +117,12 @@ func runCapture() {
             lolimage.topMessage = finalSha
             lolimage.bottomMessage = finalMessage
 
-            lolimage.render().writeToFile(filePath, atomically: true)
-            // TODO: handle file write error condition
-
+            let writeSuccess = lolimage.render().writeToFile(filePath, atomically: true)
+            if !writeSuccess {
+                println("ERROR: failure writing to file: \(filePath)")
+                exit(1)
+            }
+            
             debug("main", "LOL! image written to \(filePath)")
             println("LOL! image was preserved at: \(filePath)")
 
