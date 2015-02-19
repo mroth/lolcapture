@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 
 let programName     = "lolcapture"
 let programVersion  = "0.0.1 dev"
@@ -123,6 +124,9 @@ func runCapture() {
             println("LOL! image was preserved at: \(filePath)")
 
             // if in test mode, open the image for preview immediately
+            if testMode {
+                NSWorkspace.sharedWorkspace().openFile(filePath)
+            }
         } else {
             println("ERROR: Didn't understand the image data we got back from camera.")
         }
