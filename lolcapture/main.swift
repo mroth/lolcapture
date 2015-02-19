@@ -7,10 +7,16 @@ var programIdentifier: String {
     return "\(programName) \(programVersion)"
 }
 
-// TODO: set a sane default
-// TODO: override from CLI
+
+// TODO: #2 override from CLI
+// - parse CLI args
+// - check for parent directory existence
+// - open question: if pdir doesnt exist, do we mkdir -p? (probably not very unix-like)
+
 /// the path where the final image will be stored (including filename)
-var filePath = "/Users/mroth/Desktop/test-capture.jpg"
+let cwd = NSFileManager.defaultManager().currentDirectoryPath
+let fileName = "test-capture.jpg"
+let filePath = "\(cwd)/\(fileName)"
 
 /// default delay to pass on for warmup in capture process
 var delay = 0.75
