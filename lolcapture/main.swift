@@ -12,15 +12,7 @@ let cwd = NSFileManager.defaultManager().currentDirectoryPath
 let defaultFileName = "test-capture.jpg"
 
 /// the current filePath where we will write the completed image
-var filePath: String = cwd.stringByAppendingPathComponent(defaultFileName) {
-    didSet {
-        let writeOk = NSFileManager.defaultManager().isWritableFileAtPath(filePath)
-        if !writeOk {
-            println("Uhm, dude, I can't write to a file at \(filePath)")
-            exit(1)
-        }
-    }
-}
+var filePath: String = cwd.stringByAppendingPathComponent(defaultFileName)
 
 /// default delay to pass on for warmup in capture process
 var delay = 0.75
@@ -159,9 +151,7 @@ let realArgs = arguments.filter({!$0.hasPrefix("-")})
 // we are assuming the second non-dashed option argument is the filename
 let potentialFileName: String? = (realArgs.count > 1) ? realArgs[1] : nil
 if let parsedFileName = potentialFileName {
-    
-    //FIXME: move me somewhere relatively sane please!
-    
+
     // standardize the path to remove all junk
     let standardPath = NSString(string: parsedFileName).stringByStandardizingPath
 
