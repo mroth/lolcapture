@@ -111,12 +111,23 @@ func processArgs(args: [String]) {
 func runCapture() {
     println("📷 lolcommits is preserving this moment in history.")
 
-    if let imagedata = CamSnapper.capture(warmupDelay: delay) {
-        let renderedImage = LOLImage(imageData: imagedata, bottomMessage: finalMessage, topMessage: finalSha).render()
-        renderedImage.writeToFile(filePath, atomically: true)
-        debug("main", "LOL! image written to \(filePath)")
+    if let rawimagedata = CamSnapper.capture(warmupDelay: delay) {
+        if let lolimage = LOLImage(data: rawimagedata) {
+            lolimage.topMessage = finalSha
+            lolimage.bottomMessage = finalMessage
 
-        // TODO: if in test mode, open the image for preview immediately
+            lolimage.render().writeToFile(filePath, atomically: true)
+            // TODO: handle file write error condition
+
+            debug("main", "LOL! image written to \(filePath)")
+            println("LOL! image was preserved at: \(filePath)")
+
+            // if in test mode, open the image for preview immediately
+        } else {
+            println("ERROR: Didn't understand the image data we got back from camera.")
+        }
+    } else {
+        println("ERROR: Unable to capture image from camera for some reason.")
     }
 }
 

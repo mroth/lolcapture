@@ -1,17 +1,14 @@
 import Foundation
 import AppKit
 
-class LOLImage {
-    
-    // storage for the raw image before processing
-    private let image: NSImage!
+class LOLImage: NSImage {
     
     /// how much margin to have on the sides of the image
     let marginSize: CGFloat = 10.0
     
     // what size the final image should be after resizing and cropping
-    let desiredFinalWidth:  CGFloat = 640.0 // 960.0 would be native on new iMac after cropping
-    let desiredFinalHeight: CGFloat = 480.0 // 720.0 would be native on new iMac after cropping
+    let desiredFinalWidth:  CGFloat = 640.0 // 960.0 is native on new iMac after cropping
+    let desiredFinalHeight: CGFloat = 480.0 // 720.0 is native on new iMac after cropping
     var desiredFinalSize: CGSize {
         return CGSize(width: desiredFinalWidth, height: desiredFinalHeight)
     }
@@ -21,24 +18,19 @@ class LOLImage {
     var bottomMessage: String?
     
     
-    init(imageData: NSData) {
-        self.image = NSImage(data: imageData)
-    }
-    
-    /// initialize with values for the message strings to composite
-    init(imageData: NSData, bottomMessage: String?, topMessage: String?) {
-        self.image = NSImage(data: imageData)
-        self.topMessage = topMessage
+    convenience init?(data: NSData, bottomMessage: String?, topMessage: String?) {
+        self.init(data: data)
         self.bottomMessage = bottomMessage
+        self.topMessage = topMessage
     }
     
     /// the raw image resized and cropped to defaults
     func resizedImage() -> NSImage {
-        return resizeImageToFill(self.image, targetSize: self.desiredFinalSize)
+        return LOLImage.resizeImageToFill(self, targetSize: self.desiredFinalSize)
     }
     
     /// utility function: resizes a given image to fill target size, while preserving aspect ratio
-    private func resizeImageToFill(image: NSImage, targetSize: CGSize) -> NSImage {
+    class func resizeImageToFill(image: NSImage, targetSize: CGSize) -> NSImage {
         let imgSize = image.size
         debug("resize", "starting, image size: \(imgSize), target size: \(targetSize)")
         
@@ -75,10 +67,10 @@ class LOLImage {
         return resizingImage
     }
     
-    private func compositeText() -> NSImage {
+    private func compositeTextOverResizedImage() -> NSImage {
         /// a local copy of whatever image data we need
         let img = resizedImage()
-        
+
         /// what is our available caption width?
         let availableWidth = img.size.width - marginSize*2
         
@@ -161,7 +153,7 @@ class LOLImage {
     
     /// render the final representation of the image as JPEG data
     func render() -> NSData {
-        let compositedImage = compositeText()
+        let compositedImage = compositeTextOverResizedImage()
 
         let imageRep = NSBitmapImageRep(data: compositedImage.TIFFRepresentation!)!
         
