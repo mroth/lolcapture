@@ -49,15 +49,17 @@ func debug(group: String, msg: String) {
 
 /// Process dashed options for the CLI
 ///
-/// :param: opts all options parsed from the command line
+/// Mostly these modify the global state for the application process, however
+/// certain options are actually mapped to actions that exit the process after
+/// completing.
+///
+/// :param: opts all dashed options parsed from the command line
 func processDashedOpts(opts: [String]) {
     for opt in opts {
 
         let splitArg = opt.componentsSeparatedByString("=")
         var argkey: String  = splitArg[0]
         var argval: String? = splitArg.count > 1 ? splitArg[1] : nil
-        //debug("m", "key: \(key)")
-        //debug("m", "val: \(val)")
 
         switch argkey {
 
@@ -113,6 +115,33 @@ func processDashedOpts(opts: [String]) {
     }
 }
 
+/// Parse the CLI arguments.
+///
+/// :returns: A list of all dashed options extracted from the arguments, and an
+///   optional destination filePath provided by the user.
+func parseArgs() -> (dashedOpts: [String], destinationFilePath: String?) {
+    let arguments = NSProcessInfo.processInfo().arguments as [String]
+    let dashedOptions = arguments.filter({$0.hasPrefix("-")})
+    let realArgs = arguments.filter({!$0.hasPrefix("-")})
+    
+    var parsedFilePath: String?
+    
+    // we are assuming the second non-dashed option argument is the filename
+    let potentialFileName: String? = (realArgs.count > 1) ? realArgs[1] : nil
+    if let parsedFileName = potentialFileName {
+        
+        // standardize the path to remove all junk
+        let standardPath = NSString(string: parsedFileName).stringByStandardizingPath
+        
+        // if not an absolute path, prepend the current working directory
+        let absPath = NSString(string: parsedFileName).absolutePath
+        parsedFilePath = absPath ? standardPath : cwd.stringByAppendingPathComponent(standardPath)
+    }
+    
+    return (dashedOptions, parsedFilePath)
+}
+
+/// Runs the main capture process.
 func runCapture() {
     println("📷 lolcommits is preserving this moment in history.")
 
@@ -128,10 +157,9 @@ func runCapture() {
             }
             
             debug("main", "LOL! image written to \(filePath)")
-            println("LOL! image was preserved at: \(filePath)")
-
-            // if in test mode, open the image for preview immediately
+            
             if testMode {
+                // in test mode, open the image for preview immediately
                 NSWorkspace.sharedWorkspace().openFile(filePath)
             }
         } else {
@@ -142,25 +170,19 @@ func runCapture() {
     }
 }
 
-
-let arguments = NSProcessInfo.processInfo().arguments as [String]
-let appName = arguments[0].lastPathComponent
-let dashedOptions = arguments.filter({$0.hasPrefix("-")})
-let realArgs = arguments.filter({!$0.hasPrefix("-")})
-
-// we are assuming the second non-dashed option argument is the filename
-let potentialFileName: String? = (realArgs.count > 1) ? realArgs[1] : nil
-if let parsedFileName = potentialFileName {
-
-    // standardize the path to remove all junk
-    let standardPath = NSString(string: parsedFileName).stringByStandardizingPath
-
-    // is not an absolute path, prepend the current working directory
-    let absPath = NSString(string: parsedFileName).absolutePath
-    var resultingPath = absPath ? standardPath : cwd.stringByAppendingPathComponent(standardPath)
-
-    filePath = resultingPath
+func main () {
+    // parse the CLI arguments, override destination file path if provided by user
+    let (dashedOptions, destinationFilePath) = parseArgs()
+    if let dfp = destinationFilePath {
+        filePath = dfp
+    }
+    
+    // process dashed options to set up global state
+    // if any of those dashed options represent a terminating action, that is
+    // currently handled for us in method.
+    processDashedOpts(dashedOptions)
+    
+    // run the "main" capture process
+    runCapture()
 }
-
-processDashedOpts(dashedOptions)
-runCapture()
+main()
