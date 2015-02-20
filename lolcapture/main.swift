@@ -7,15 +7,6 @@ var programIdentifier: String {
     return "\(programName) \(programVersion)"
 }
 
-/// Utility function to logs a debug message to STDOUT if DEBUG_MODE=true.
-// TODO: extract me into Logger class
-func debug(group: String, msg: String) {
-    if Config.debugMode {
-        let stderr = NSFileHandle.fileHandleWithStandardError()
-        let debugStr = "DEBUG[\(group)]:\t\(msg)\n"
-        stderr.writeData( debugStr.dataUsingEncoding(NSUTF8StringEncoding)! )
-    }
-}
 
 /// Process dashed options for the CLI
 ///
@@ -126,7 +117,7 @@ func runCapture() {
                 exit(1)
             }
             
-            debug("main", "LOL! image written to \(Config.filePath)")
+            Logger.debug("main", "LOL! image written to \(Config.filePath)")
             
             if Config.testMode {
                 // in test mode, open the image for preview immediately

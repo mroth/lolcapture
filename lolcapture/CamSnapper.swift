@@ -52,12 +52,12 @@ class CamSnapper {
             // since this is a rare occassion where we WANT to block the main thread.
             let captureGroup = dispatch_group_create()
             dispatch_group_enter(captureGroup)
-            debug("capture", "starting capture task")
+            Logger.debug("capture", "starting capture task")
             
             // try sleeping on this thread for a delay to let camera warm up better
-            debug("capture", "sleeping for \(warmupDelay) sec. to allow camera to warmup")
+            Logger.debug("capture", "sleeping for \(warmupDelay) sec. to allow camera to warmup")
             NSThread.sleepForTimeInterval(warmupDelay)
-            debug("capture", "warmup complete")
+            Logger.debug("capture", "warmup complete")
             
             // make a local optional var to hold the buffer after async capture
             var imageBuffer: CMSampleBuffer? = nil
@@ -67,7 +67,7 @@ class CamSnapper {
             imageOutput.captureStillImageAsynchronouslyFromConnection(
                 videoChannel,
                 completionHandler:{(buffer: CMSampleBuffer!, err: NSError!) in
-                    debug("capture", "finishing capture task")
+                    Logger.debug("capture", "finishing capture task")
                     imageBuffer = buffer
                     dispatch_group_leave(captureGroup)
                 }

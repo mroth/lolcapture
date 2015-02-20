@@ -32,11 +32,11 @@ class LOLImage: NSImage {
     /// utility function: resizes a given image to fill target size, while preserving aspect ratio
     class func resizeImageToFill(image: NSImage, targetSize: CGSize) -> NSImage {
         let imgSize = image.size
-        debug("resize", "starting, image size: \(imgSize), target size: \(targetSize)")
+        Logger.debug("resize", "starting, image size: \(imgSize), target size: \(targetSize)")
         
         let widthRatio  = targetSize.width  / imgSize.width
         let heightRatio = targetSize.height / imgSize.height
-        debug("resize", "finding widthRatio: \(widthRatio), heightRatio: \(heightRatio)")
+        Logger.debug("resize", "finding widthRatio: \(widthRatio), heightRatio: \(heightRatio)")
         
         // okay, so what we essentially need to do is make a NSRect of the appropriate size to precrop the image
         // to the desired aspect ratio, so we can use it as the contextual srcRect in the actual resize operation
@@ -55,7 +55,7 @@ class LOLImage: NSImage {
             width: croppingSize.width,
             height: croppingSize.height)
         
-        debug("resize", "using croppingRect: \(croppingRect)")
+        Logger.debug("resize", "using croppingRect: \(croppingRect)")
         
         // do actual resize via custom drawingHandler
         // again need to avoid .lockFocus type stuff because it causes unexpected results on Retina now
@@ -157,8 +157,8 @@ class LOLImage: NSImage {
 
         let imageRep = NSBitmapImageRep(data: compositedImage.TIFFRepresentation!)!
         
-        debug("render", "imageRep.size (in points): \(imageRep.size)")
-        debug("render", "final pixel dimensions: \(imageRep.pixelsWide)x\(imageRep.pixelsHigh)")
+        Logger.debug("render", "imageRep.size (in points): \(imageRep.size)")
+        Logger.debug("render", "final pixel dimensions: \(imageRep.pixelsWide)x\(imageRep.pixelsHigh)")
         
         let imageData = imageRep.representationUsingType(NSBitmapImageFileType.NSJPEGFileType, properties: [NSImageCompressionFactor: 0.8])
         return imageData!
