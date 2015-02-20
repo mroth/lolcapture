@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EF8F554C1A96B3DA00FCC289 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8F554B1A96B3DA00FCC289 /* Config.swift */; };
 		EFC22C5C1A89A86400938E42 /* LOLImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFC22C5B1A89A86400938E42 /* LOLImage.swift */; };
 		EFEA72181A896936004483D4 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFEA72171A896936004483D4 /* main.swift */; };
 		EFEA72231A896DB9004483D4 /* CamSnapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFEA72221A896DB9004483D4 /* CamSnapper.swift */; };
@@ -26,6 +27,7 @@
 
 /* Begin PBXFileReference section */
 		EF2AF4711A927B6F0068FA06 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
+		EF8F554B1A96B3DA00FCC289 /* Config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		EFC22C5B1A89A86400938E42 /* LOLImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LOLImage.swift; sourceTree = "<group>"; };
 		EFEA72141A896936004483D4 /* lolcapture */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = lolcapture; sourceTree = BUILT_PRODUCTS_DIR; };
 		EFEA72171A896936004483D4 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -65,6 +67,7 @@
 			children = (
 				EFEA72221A896DB9004483D4 /* CamSnapper.swift */,
 				EFC22C5B1A89A86400938E42 /* LOLImage.swift */,
+				EF8F554B1A96B3DA00FCC289 /* Config.swift */,
 				EFEA72171A896936004483D4 /* main.swift */,
 			);
 			path = lolcapture;
@@ -127,6 +130,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EFEA72181A896936004483D4 /* main.swift in Sources */,
+				EF8F554C1A96B3DA00FCC289 /* Config.swift in Sources */,
 				EFEA72231A896DB9004483D4 /* CamSnapper.swift in Sources */,
 				EFC22C5C1A89A86400938E42 /* LOLImage.swift in Sources */,
 			);
