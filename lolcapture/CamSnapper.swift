@@ -72,11 +72,21 @@ class CamSnapper {
                     dispatch_group_leave(captureGroup)
                 }
             )
-            
-            dispatch_group_wait(captureGroup, DISPATCH_TIME_FOREVER) //FIXME: let's not wait forever
+
+            // wait for dispatch group complete then stop session
+            let timeoutSec = warmupDelay + 10
+            let timeout = dispatch_time(DISPATCH_TIME_NOW, Int64(timeoutSec * Double(NSEC_PER_SEC)))
+            let dispatchResults = dispatch_group_wait(captureGroup, timeout)
             captureSession.stopRunning()
-            let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(imageBuffer)
-            return imageData
+
+            // dispatch actually had timed out if results are non-zero
+            if dispatchResults != 0 {
+                println("ERROR! Timed out waiting for camera data.")
+                return nil
+            }
+
+            // all good, return some jpeg pics plz
+            return AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(imageBuffer)
         }
         
         // we shouldn't ever get here unless we can't get camera input.

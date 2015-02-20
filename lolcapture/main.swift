@@ -110,8 +110,9 @@ func runCapture() {
         if let lolimage = LOLImage(data: rawimagedata) {
             lolimage.topMessage = Config.finalSha
             lolimage.bottomMessage = Config.finalMessage
-
-            let writeSuccess = lolimage.render().writeToFile(Config.filePath, atomically: true)
+            
+            let renderData = lolimage.render()
+            let writeSuccess = renderData.writeToFile(Config.filePath, atomically: true)
             if !writeSuccess {
                 println("ERROR: failure writing to file: \(Config.filePath)")
                 exit(1)
