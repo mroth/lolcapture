@@ -27,8 +27,8 @@ This is more of a testbed for ideas that may perhaps eventually make it into [Vi
 
 ## Output comparison
 
-lolcapture:
-![lolcapture](http://f.cl.ly/items/3F0N2H362k453S1f3v3i/test-capture.jpg)
+lolcapture:  
+<img src="http://f.cl.ly/items/3F0N2H362k453S1f3v3i/test-capture.jpg" width=320>
 
-lolcommits gem (using wacaw+imagemagick):
-![lolcommits](http://f.cl.ly/items/00013m2s193Q0b3D211D/test-8390631112.jpg)
+lolcommits gem (using wacaw+imagemagick):  
+<img src="http://f.cl.ly/items/00013m2s193Q0b3D211D/test-8390631112.jpg" width=320>
