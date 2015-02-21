@@ -1,7 +1,7 @@
 lolcapture
 ==========
 
-An experimental OSX webcam capture tool for lolcommits that includes the image resizing and text composition steps with native frameworks, removing the need for an external dependency on ImageMagick.
+An experimental OSX webcam capture tool for [lolcommits][lc] that includes the image resizing and text composition steps with native frameworks, removing the need for an external dependency on ImageMagick.
 
 This is more of a testbed for ideas that may perhaps eventually make it into [VideoSnap][vs], and is not really intended for actual usage.  It's also an excuse for me to experiment with learning Swift.
 
@@ -32,3 +32,5 @@ lolcapture:
 
 lolcommits gem (using wacaw+imagemagick):  
 <img src="http://f.cl.ly/items/00013m2s193Q0b3D211D/test-8390631112.jpg" width=320>
+
+[lc]: https://github.com/mroth/lolcommits
