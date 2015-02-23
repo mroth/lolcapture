@@ -118,7 +118,7 @@ func runCapture() {
                 exit(1)
             }
             
-            Logger.debug("main", "LOL! image written to \(Config.filePath)")
+            Logger.debug("LOL! image written to \(Config.filePath)")
             
             if Config.testMode {
                 // in test mode, open the image for preview immediately
