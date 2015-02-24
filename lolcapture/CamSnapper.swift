@@ -2,31 +2,37 @@ import Foundation
 import AVFoundation
 
 class CamSnapper {
-    
-    /// Returns a list of devices that are capable of capturing images
+
+    /// What is the currently preferred capture device?
+    ///
+    /// :returns: The default device used to capture photographic images.
+    private class func preferredDevice() -> AVCaptureDevice? {
+        // TODO: figure out what's up with the below being implicitly unwrapped.
+        //
+        // This will change to an optional in Swift 1.2 hopefully -- assuming
+        // AVFoundation is updated with Obj-C nullable properties?
+        //
+        // In the meantime, we can cast it ourselves via return type.
+        return AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
+    }
+
+    /// Returns a list of all devices that are capable of capturing images
     class func compatibleDevices() -> [(id: String, name: String)] {
         let devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo) as [AVCaptureDevice]
         return devices.map { ($0.uniqueID, $0.localizedName) }
     }
-    
-    /// What is the currently preferred capture device?
-    private class func preferredDevice() -> AVCaptureDevice? {
-        // TODO: need to figure out wtf is up with this being implicitly unwrapped.
-        // I mean it can legit be nil right? This will all change in Swift 1.2 I guess -- assuming
-        // AVFoundation is updated with Obj-C nullable properties.
-        return AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
-    }
-    
+
     /// Do the main capture!
     ///
-    /// :param: warmupDelay how long to delay capture to give the camera extra time to warmup (default: 0.0)
+    /// :param: warmupDelay How long to delay capture for warmup (default: 0.0).
     /// :returns: The captured image data serialized to JPEG encoding.
     class func capture(warmupDelay: NSTimeInterval = 0.0) -> NSData? {
         let camera = preferredDevice()
         let captureSession = AVCaptureSession()
         
-        // AVCaptureDevicInput is a failable initializer.. so in theory this should catch failure?
-        // ...in which case the error proc isn't really needed.
+        // AVCaptureDevicInput is a failable initializer
+        // ...so in theory this should catch failure?
+        // ...in which case error proc isn't really needed, just Obj-C legacy
         if let cameraInput = AVCaptureDeviceInput(device: camera, error: nil) {
             
 
@@ -47,14 +53,19 @@ class CamSnapper {
             captureSession.commitConfiguration()
             captureSession.startRunning()
             
-            // use a dispatch group so we will know when the (async) image capture is done
-            // it's a shame there doesn't seem to be a built in synchronous way to do this
-            // since this is a rare occassion where we WANT to block the main thread.
+            // use dispatch group to know when (async) image capture is done.
+            //
+            // it's a shame there doesn't seem to be a built-in synchronous way
+            // to do this, since this is a rare occassion where we WANT to block
+            // the main thread.
             let captureGroup = dispatch_group_create()
             dispatch_group_enter(captureGroup)
             Logger.debug("starting capture task")
             
-            // try sleeping on this thread for a delay to let camera warm up better
+            // sleep on this thread for delay to enable full camera warm-up.
+            //
+            // AVFoundation seems to be good at waiting till the camera sees an
+            // image, but doesn't wait for white-balance & exposure adjustment.
             Logger.debug("sleeping for \(warmupDelay) sec. to allow camera to warmup...")
             NSThread.sleepForTimeInterval(warmupDelay)
             Logger.debug("...warmup complete.")
@@ -90,12 +101,10 @@ class CamSnapper {
         }
         
         // we shouldn't ever get here unless we can't get camera input.
-        // its unfortunate this moves the results of the failure condition way down here but that seems
-        // to be the side-effect of using "if let" idomatic Swift.  Should look into this more.
+        //
+        // its unfortunate the results of the failure condition way down here,
+        // but that seems to be a side-effect of using "if let" idomatic Swift.
         return nil
     }
-    
-    
-    
-    
+
 }

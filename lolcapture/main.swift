@@ -7,7 +7,6 @@ var programIdentifier: String {
     return "\(programName) \(programVersion)"
 }
 
-
 /// Process dashed options for the CLI
 ///
 /// Mostly these modify the global state for the application process, however
@@ -17,7 +16,6 @@ var programIdentifier: String {
 /// :param: opts all dashed options parsed from the command line
 func processDashedOpts(opts: [String]) {
     for opt in opts {
-
         let splitArg = opt.componentsSeparatedByString("=")
         var argkey: String  = splitArg[0]
         var argval: String? = splitArg.count > 1 ? splitArg[1] : nil
@@ -108,20 +106,20 @@ func runCapture() {
 
     if let rawimagedata = CamSnapper.capture(warmupDelay: Config.delay) {
         if let lolimage = LOLImage(data: rawimagedata) {
-            lolimage.topMessage = Config.finalSha
+            lolimage.topMessage    = Config.finalSha
             lolimage.bottomMessage = Config.finalMessage
             
-            let renderData = lolimage.render()
-            let writeSuccess = renderData.writeToFile(Config.filePath, atomically: true)
+            let renderedData = lolimage.render()
+            let writeSuccess = renderedData.writeToFile(Config.filePath, atomically: true)
             if !writeSuccess {
                 println("ERROR: failure writing to file: \(Config.filePath)")
                 exit(1)
+            } else {
+                Logger.debug("image successfully written to \(Config.filePath)")
             }
-            
-            Logger.debug("LOL! image written to \(Config.filePath)")
-            
+
+            // when in test mode, open the image for preview immediately
             if Config.testMode {
-                // in test mode, open the image for preview immediately
                 NSWorkspace.sharedWorkspace().openFile(Config.filePath)
             }
         } else {
@@ -140,8 +138,9 @@ func main () {
     }
     
     // process dashed options to set up global state
-    // if any of those dashed options represent a terminating action, that is
-    // currently handled for us in method.
+    // if any of those dashed options represent a terminating action, that will be
+    // handled for us in this method (so there is the possibility our process will
+    // exit expectedly at this point).
     processDashedOpts(dashedOptions)
     
     // run the "main" capture process
