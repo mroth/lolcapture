@@ -79,7 +79,7 @@ func processDashedOpts(opts: [String]) {
 /// :returns: A list of all dashed options extracted from the arguments, and an
 ///   optional destination filePath provided by the user.
 func parseArgs() -> (dashedOpts: [String], destinationFilePath: String?) {
-    let arguments = NSProcessInfo.processInfo().arguments as [String]
+    let arguments = NSProcessInfo.processInfo().arguments as! [String]
     let dashedOptions = arguments.filter({$0.hasPrefix("-")})
     let realArgs = arguments.filter({!$0.hasPrefix("-")})
     

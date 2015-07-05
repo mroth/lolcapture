@@ -18,7 +18,7 @@ class CamSnapper {
 
     /// Returns a list of all devices that are capable of capturing images
     class func compatibleDevices() -> [(id: String, name: String)] {
-        let devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo) as [AVCaptureDevice]
+        let devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo) as! [AVCaptureDevice]
         return devices.map { ($0.uniqueID, $0.localizedName) }
     }
 
