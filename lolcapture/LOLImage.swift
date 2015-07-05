@@ -163,7 +163,7 @@ class LOLImage: NSImage {
     private func formattedTextForTopMessage() -> NSAttributedString? {
         if let msg = self.topMessage {
             let rightAlignParagraphStyle = NSMutableParagraphStyle()
-            rightAlignParagraphStyle.alignment = NSTextAlignment(rawValue: 1)! //NSRightTextAlignment, swift cant seem to find?
+            rightAlignParagraphStyle.alignment = NSTextAlignment.RightTextAlignment
             
             let msgString = NSAttributedString(
                 string: msg,
