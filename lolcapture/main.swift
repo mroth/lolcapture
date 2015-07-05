@@ -45,9 +45,7 @@ func processDashedOpts(opts: [String]) {
             exit(0)
 
         case "-l", "--list":
-            let devices = CamSnapper.compatibleDevices()
-            println(devices)
-            exit(0)
+            listDevices()
 
         case "-t", "--test":
             Config.testMode = true
@@ -98,6 +96,14 @@ func parseArgs() -> (dashedOpts: [String], destinationFilePath: String?) {
     }
     
     return (dashedOptions, parsedFilePath)
+}
+
+/// Prints devices to STDOUT then exits
+func listDevices() {
+    for (id, name) in CamSnapper.compatibleDevices() {
+        println("📷 \(id) - \(name)")
+    }
+    exit(0)
 }
 
 /// Runs the main capture process.
