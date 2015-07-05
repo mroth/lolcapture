@@ -5,7 +5,7 @@ struct Config {
     static let cwd = NSFileManager.defaultManager().currentDirectoryPath
     
     /// Default file name to use when none is specified.
-    static let defaultFileName = "test-capture.jpg"
+    static let defaultFileName = "snapshot.jpg"
     
     /// Current filePath where we will write the completed image.
     static var filePath: String = cwd.stringByAppendingPathComponent(defaultFileName)
