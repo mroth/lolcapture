@@ -109,7 +109,7 @@ func parseArgs() -> (dashedOpts: [String], destinationFilePath: String?) {
 func listDevices(devices: [AVCaptureDevice]?) {
     if devices?.isEmpty == false {
         for d in devices! {
-            println("📷 \(d.uniqueID) - \(d.localizedName)")
+            println("📷 \(d.localizedName) [\(d.uniqueID)]")
         }
     }
 }
