@@ -45,4 +45,7 @@ struct Config {
     static var finalSha: String? {
         return (testMode && parsedSha == nil) ? testSha : parsedSha
     }
+
+    /// Manually specified device ID by the user
+    static var requestedDeviceID: String?
 }

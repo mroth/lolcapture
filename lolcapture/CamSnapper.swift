@@ -6,7 +6,7 @@ class CamSnapper {
     /// What is the currently preferred capture device?
     ///
     /// :returns: The default device used to capture photographic images.
-    private class func preferredDevice() -> AVCaptureDevice? {
+    class func preferredDevice() -> AVCaptureDevice? {
         // TODO: figure out what's up with the below being implicitly unwrapped.
         //
         // This will change to an optional in Swift 1.2 hopefully -- assuming
@@ -17,24 +17,38 @@ class CamSnapper {
     }
 
     /// Returns a list of all devices that are capable of capturing images
-    class func compatibleDevices() -> [(id: String, name: String)] {
+    class func compatibleDevices() -> [AVCaptureDevice]? {
         let devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo) as! [AVCaptureDevice]
-        return devices.map { ($0.uniqueID, $0.localizedName) }
+        if count(devices) == 0 { return nil }
+        return devices
+    }
+
+    /// Returns all devices where either the ID or name matches the query string
+    class func devicesMatchingString(query: String) -> [AVCaptureDevice]? {
+        if let candidates = compatibleDevices() {
+            let matches = candidates.filter {
+                $0.uniqueID.lowercaseString.rangeOfString(query)      != nil ||
+                $0.localizedName.lowercaseString.rangeOfString(query) != nil
+            }
+            // only return the match array if it actually contains a match
+            if count(matches) > 0 {
+                return matches
+            }
+        }
+        return nil
     }
 
     /// Do the main capture!
     ///
     /// :param: warmupDelay How long to delay capture for warmup (default: 0.0).
     /// :returns: The captured image data serialized to JPEG encoding.
-    class func capture(warmupDelay: NSTimeInterval = 0.0) -> NSData? {
-        let camera = preferredDevice()
+    class func capture(warmupDelay: NSTimeInterval = 0.0, camera: AVCaptureDevice) -> NSData? {
         let captureSession = AVCaptureSession()
         
         // AVCaptureDevicInput is a failable initializer
         // ...so in theory this should catch failure?
         // ...in which case error proc isn't really needed, just Obj-C legacy
         if let cameraInput = AVCaptureDeviceInput(device: camera, error: nil) {
-            
 
             // begin configuration block
             captureSession.beginConfiguration()

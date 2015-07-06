@@ -1,8 +1,9 @@
 import Foundation
+import AVFoundation
 import AppKit
 
 let programName     = "lolcapture"
-let programVersion  = "0.0.1 dev"
+let programVersion  = "0.0.2 dev"
 var programIdentifier: String {
     return "\(programName) \(programVersion)"
 }
@@ -30,12 +31,13 @@ func processDashedOpts(opts: [String]) {
             println("")
             println("Options:")
             println("  -h, --help           Show this help message and exit")
-            println("  -v, --version        Show the \(programName) version")
+            println("  -v, --version        Show the \(programName) version and exit")
             println("  -l, --list           List available capture devices")
+            println("  --device=ID          Use specified device (matches name or id, partial ok)")
             println("  --test               Create fake msg/SHA values when none provided")
-            println("  --msg=<MSG>          Message to be displayed across bottom of image")
-            println("  --sha=<SHA>          Hash to be displayed on top right of image")
-            println("  --warmup=<N>         Delay capture by N seconds (default: \(Config.delay))")
+            println("  --msg=MSG            Message to be displayed across bottom of image")
+            println("  --sha=SHA            Hash to be displayed on top right of image")
+            println("  --warmup=N           Delay capture by N seconds (default: \(Config.delay))")
             println("  --debug              Enable DEBUG output")
             exit(0)
 
@@ -44,7 +46,11 @@ func processDashedOpts(opts: [String]) {
             exit(0)
 
         case "-l", "--list":
-            listDevices()
+            listDevices(CamSnapper.compatibleDevices())
+            exit(0)
+
+        case "--device":
+            Config.requestedDeviceID = argval
 
         case "-t", "--test":
             Config.testMode = true
@@ -97,19 +103,49 @@ func parseArgs() -> (dashedOpts: [String], destinationFilePath: String?) {
     return (dashedOptions, parsedFilePath)
 }
 
-/// Prints devices to STDOUT then exits
-func listDevices() {
-    for (id, name) in CamSnapper.compatibleDevices() {
-        println("📷 \(id) - \(name)")
+/// Prints a formatted list of devices to STDOUT
+///
+/// :param: devices List of devices to print.
+func listDevices(devices: [AVCaptureDevice]?) {
+    if devices?.isEmpty == false {
+        for d in devices! {
+            println("📷 \(d.uniqueID) - \(d.localizedName)")
+        }
     }
-    exit(0)
+}
+
+/// Get a default device based on the UI or otherwise, or die violently
+func deviceSelect() -> AVCaptureDevice {
+    if let req = Config.requestedDeviceID { // user requested a specific device
+        if let matches = CamSnapper.devicesMatchingString(req) {
+            if count(matches) == 1 {
+                return matches.first!
+            } else {
+                println("Multiple input devices matched your request: \(req)")
+                listDevices(matches)
+                println("\n... could you please be more specific?")
+                exit(1)
+            }
+        }
+
+    } else {
+        if let camera = CamSnapper.preferredDevice() {
+            return camera
+        }
+    }
+
+    // ruh roh, no camera found at all!
+    println("🚫 no matching capture devices found")
+    exit(13)
 }
 
 /// Runs the main capture process.
 func runCapture() {
-    println("📷 lolcommits is preserving this moment in history.")
+    let camera = deviceSelect()
+    Logger.debug("using capture device: \(camera)")
 
-    if let rawimagedata = CamSnapper.capture(warmupDelay: Config.delay) {
+    println("📷 lolcommits is preserving this moment in history.")
+    if let rawimagedata = CamSnapper.capture(warmupDelay: Config.delay, camera: camera) {
         if let lolimage = LOLImage(data: rawimagedata) {
             lolimage.topMessage    = Config.finalSha
             lolimage.bottomMessage = Config.finalMessage

@@ -16,7 +16,7 @@ This is more of a testbed for ideas that may perhaps eventually make it into [Vi
 
 ## TODO
 
-- Handle device selection instead of just using primary device.
+- Handle device selection instead of just using primary device. √
 - Figure out lineheight/spacing issue.
 - Preserve JPEG EXIF metadata.
 - Write git metadata to EXIF too!
