@@ -24,20 +24,19 @@ func processDashedOpts(opts: [String]) {
 
         case "-h", "--help":
             // wow, no multiline string literals in Swift? Really?!
-            let sep = "\t\t\t"
             println("Usage: \(programName) [options] <destination>")
             println("")
             println("Experimental one-step webcam capture and text composition for lolcommits.")
             println("")
             println("Options:")
-            println("  -h, --help"    + sep + "Show this help message and exit")
-            println("  -v, --version" + sep + "Show the \(programName) version")
-            println("  -l, --list"    + sep + "List available capture devices")
-            println("  --test"        + sep + "Create fake msg/SHA values when none provided")
-            println("  --msg=<MSG>"   + sep + "Message to be displayed across bottom of image")
-            println("  --sha=<SHA>"   + sep + "Hash to be displayed on top right of image")
-            println("  --delay=<N>"   + sep + "Delay capture by N seconds (default: \(Config.delay))")
-            println("  --debug"       + sep + "Enable DEBUG output")
+            println("  -h, --help           Show this help message and exit")
+            println("  -v, --version        Show the \(programName) version")
+            println("  -l, --list           List available capture devices")
+            println("  --test               Create fake msg/SHA values when none provided")
+            println("  --msg=<MSG>          Message to be displayed across bottom of image")
+            println("  --sha=<SHA>          Hash to be displayed on top right of image")
+            println("  --warmup=<N>         Delay capture by N seconds (default: \(Config.delay))")
+            println("  --debug              Enable DEBUG output")
             exit(0)
 
         case "-v", "--version":
@@ -56,7 +55,7 @@ func processDashedOpts(opts: [String]) {
         case "--sha":
             Config.parsedSha = argval
             
-        case "--delay":
+        case "--warmup":
             if let delayStr = argval {
                 if let delayNum = NSNumberFormatter().numberFromString(delayStr) {
                     Config.delay = delayNum.doubleValue
