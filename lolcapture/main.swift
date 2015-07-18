@@ -34,6 +34,7 @@ func processDashedOpts(opts: [String]) {
             println("  -v, --version        Show the \(programName) version and exit")
             println("  -l, --list           List available capture devices")
             println("  --device=ID          Use specified device (matches name or id, partial ok)")
+            println("  -g, --gitinfo        Get sha/msg from current repository")
             println("  --test               Create fake msg/SHA values when none provided")
             println("  --msg=MSG            Message to be displayed across bottom of image")
             println("  --sha=SHA            Hash to be displayed on top right of image")
@@ -55,12 +56,21 @@ func processDashedOpts(opts: [String]) {
         case "-t", "--test":
             Config.testMode = true
 
+        case "-g", "--gitinfo":
+            if let parsedInfo = GitInfo.parseFromSystem() {
+                Config.parsedSha     = parsedInfo.sha
+                Config.parsedMessage = parsedInfo.msg
+            } else {
+                println("something fucked up, probably not in a git repo?")
+                exit(666)
+            }
+
         case "--msg":
             Config.parsedMessage = argval
 
         case "--sha":
             Config.parsedSha = argval
-            
+
         case "--warmup":
             if let delayStr = argval {
                 if let delayNum = NSNumberFormatter().numberFromString(delayStr) {
@@ -85,21 +95,21 @@ func parseArgs() -> (dashedOpts: [String], destinationFilePath: String?) {
     let arguments = NSProcessInfo.processInfo().arguments as! [String]
     let dashedOptions = arguments.filter({$0.hasPrefix("-")})
     let realArgs = arguments.filter({!$0.hasPrefix("-")})
-    
+
     var parsedFilePath: String?
-    
+
     // we are assuming the second non-dashed option argument is the filename
     let potentialFileName: String? = (realArgs.count > 1) ? realArgs[1] : nil
     if let parsedFileName = potentialFileName {
-        
+
         // standardize the path to remove all junk
         let standardPath = NSString(string: parsedFileName).stringByStandardizingPath
-        
+
         // if not an absolute path, prepend the current working directory
         let absPath = NSString(string: parsedFileName).absolutePath
         parsedFilePath = absPath ? standardPath : Config.cwd.stringByAppendingPathComponent(standardPath)
     }
-    
+
     return (dashedOptions, parsedFilePath)
 }
 
@@ -149,7 +159,7 @@ func runCapture() {
         if let lolimage = LOLImage(data: rawimagedata) {
             lolimage.topMessage    = Config.finalSha
             lolimage.bottomMessage = Config.finalMessage
-            
+
             let renderedData = lolimage.render()
             let writeSuccess = renderedData.writeToFile(Config.filePath, atomically: true)
             if !writeSuccess {
@@ -177,13 +187,13 @@ func main () {
     if let dfp = destinationFilePath {
         Config.filePath = dfp
     }
-    
+
     // process dashed options to set up global state
     // if any of those dashed options represent a terminating action, that will be
     // handled for us in this method (so there is the possibility our process will
     // exit expectedly at this point).
     processDashedOpts(dashedOptions)
-    
+
     // run the "main" capture process
     runCapture()
 }
