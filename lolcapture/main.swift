@@ -57,7 +57,7 @@ func processDashedOpts(opts: [String]) {
             Config.testMode = true
 
         case "-g", "--gitinfo":
-            if let parsedInfo = GitInfo.parseFromSystem() {
+            if let parsedInfo = GitInfo.lastCommitInfo() {
                 Config.parsedSha     = parsedInfo.sha
                 Config.parsedMessage = parsedInfo.msg
             } else {
