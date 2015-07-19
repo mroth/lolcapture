@@ -49,6 +49,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EF29A1301B5B302300AAF84A /* Lib */ = {
+			isa = PBXGroup;
+			children = (
+				EFEA72221A896DB9004483D4 /* CamSnapper.swift */,
+				EF1B16231B59E4E4002DB7DE /* GitInfo.swift */,
+				EFC22C5B1A89A86400938E42 /* LOLImage.swift */,
+				EF8F554D1A96B60D00FCC289 /* Logger.swift */,
+			);
+			name = Lib;
+			sourceTree = "<group>";
+		};
 		EFEA720B1A896936004483D4 = {
 			isa = PBXGroup;
 			children = (
@@ -69,12 +80,9 @@
 		EFEA72161A896936004483D4 /* lolcapture */ = {
 			isa = PBXGroup;
 			children = (
-				EFEA72221A896DB9004483D4 /* CamSnapper.swift */,
-				EFC22C5B1A89A86400938E42 /* LOLImage.swift */,
+				EF29A1301B5B302300AAF84A /* Lib */,
 				EF8F554B1A96B3DA00FCC289 /* Config.swift */,
 				EFEA72171A896936004483D4 /* main.swift */,
-				EF1B16231B59E4E4002DB7DE /* GitInfo.swift */,
-				EF8F554D1A96B60D00FCC289 /* Logger.swift */,
 			);
 			path = lolcapture;
 			sourceTree = "<group>";
