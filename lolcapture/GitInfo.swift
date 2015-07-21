@@ -1,5 +1,10 @@
 import Foundation
 
+struct GitCommitInfo {
+    var sha: String
+    var msg: String
+}
+
 class GitInfo {
 
     class func lastCommitInfo() -> (sha: String, msg: String)? {
@@ -21,7 +26,7 @@ class GitInfo {
         let output = NSString(data: data, encoding: NSUTF8StringEncoding) as! String
         let lines = output.componentsSeparatedByString("\n")
         Logger.debug("got git info from system call: \(lines)")
-        return (lines[0], lines[1])
+        return GitCommitInfo(sha: lines[0], msg: lines[1])
     }
 
     /// returns the root directory for the execution context's current git worktree
