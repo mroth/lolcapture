@@ -7,15 +7,40 @@ struct GitCommitInfo {
 
 class GitInfo {
 
-    class func lastCommitInfo() -> (sha: String, msg: String)? {
-        let task = newGitTask(["show", "--format=%h%n%s", "--no-patch"])
+    /// return key-value pairs for a git config section
+    class func configInfo(section: String = "lolcommits") -> [String: String] {
+        var config = [String: String]()
 
+        let task = newGitTask(["config", "-z", "--get-regexp", "^\(section)\\."])
         let results = NSPipe()
         task.standardOutput = results
         task.launch()
+        task.waitUntilExit()
+
+        let data = results.fileHandleForReading.readDataToEndOfFile()
+        let output = NSString(data: data, encoding: NSUTF8StringEncoding) as! String
+        let sections = output.componentsSeparatedByString("\u{0}") // NUL
+        for section in sections {
+            let lines = section.componentsSeparatedByString("\n")
+            if count(lines) >= 2 {
+                let (k,v) = (lines[0], lines[1])
+                config[k] = v
+            }
+        }
+        return config
+    }
+
+    /// returns info about the most recent commit for the repository
+    ///
+    /// can be nil if not in an active repo
+    class func lastCommitInfo() -> GitCommitInfo? {
+        let task = newGitTask(["show", "--format=%h%n%s", "--no-patch"])
+        let results = NSPipe()
+        task.standardOutput = results
+        task.launch()
+        task.waitUntilExit()
 
         // check exit code, return nil if nonzero
-        task.waitUntilExit()
         if task.terminationStatus != 0 {
             return nil
             // TODO: in Swift 2, we can use exceptions for a failure with this
@@ -57,10 +82,11 @@ class GitInfo {
             // verify it's a directory before returning, because it could be
             // one of those annoying separate-git-dir file pointers instead
             // (in theory anyhow, I've never seen this in the wild...)
+            // TODO: support separate-git-dir pointers
             var isDir = ObjCBool(true)
             if NSFileManager.defaultManager().fileExistsAtPath(gitdir, isDirectory: &isDir) {
                 return gitdir
-            } // TODO: support separate-git-dir pointers
+            }
         }
         return nil
     }
@@ -69,7 +95,6 @@ class GitInfo {
         let task = NSTask()
         task.launchPath = findInstalledGit()! // TODO: need to handle error nicely
         task.arguments = args
-
         return task
     }
 
