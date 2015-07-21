@@ -72,10 +72,11 @@ class CaptureCommand {
                         Config.delay = delayNum.doubleValue
                     }
                 }
-            //
+
+            // ignore flags that are already handled globally
             case "--debug":
                 break
-
+            // otherwise, if we don't recognize it we should inform the user
             default:
                 println("Unknown option: \(opt)\n")
                 printUsage()
@@ -127,10 +128,8 @@ class CaptureCommand {
                 }
             }
 
-        } else {
-            if let camera = CamSnapper.preferredDevice() {
-                return camera
-            }
+        } else if let camera = CamSnapper.preferredDevice() {
+            return camera
         }
 
         // ruh roh, no camera found at all!
