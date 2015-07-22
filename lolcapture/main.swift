@@ -1,7 +1,7 @@
 import Foundation
 
 let programName     = "lolcapture"
-let programVersion  = "0.0.2 dev"
+let programVersion  = "0.0.3"
 var programIdentifier: String {
     return "\(programName) \(programVersion)"
 }
@@ -23,9 +23,12 @@ let usageGlobalDescription = "Experimental one-step webcam capture and text comp
 let usageGlobalSignature   = "Usage: \(programName) <command> [-hv]"
 let usageGlobalCommands = "\n".join([
     "Commands:",
-//    "  enable               Enables \(programName) for current repository",
-//    "  disable              Disable \(programName) for current repository",
+    "  enable*              Enables \(programName) for current repository",
+    "  disable*             Disable \(programName) for current repository",
     "  capture              Captures an image for the most recent git commit",
+    "  browse*              Opens a previous \(programName) image for review",
+    "  config*              Displays current configuration values",
+    "\n* = not yet implemented"
 ])
 let usageGlobalOptions = "\n".join([
     "Global options:",
@@ -89,6 +92,11 @@ func main() {
             pending()
         case "capture":
             CaptureCommand.run()
+        case "browse":
+            pending()
+        case "config":
+            //println(GitInfo.configInfo(section: "core"))
+            pending()
         case "help": // undocumented, but we should respect it if the user needs help...
             printUsage()
             exit(0)
