@@ -42,6 +42,7 @@ class GitInfo {
 
         // check exit code, return nil if nonzero
         if task.terminationStatus != 0 {
+            Logger.debug("attempt to get repo gitinfo was nonzero exit")
             return nil
             // TODO: in Swift 2, we can use exceptions for a failure with this
             // method instead of returning nil in an optional, good practice?

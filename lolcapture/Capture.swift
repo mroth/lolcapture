@@ -10,7 +10,6 @@ class CaptureCommand {
         "Options:",
         "  -l, --list           List available capture devices and exit",
         "  --device=ID          Use specified capture device (matches name or id)",
-        "  -g, --gitinfo        Get sha/msg from current repository",
         "  --test               Create fake msg/SHA values when none provided",
         "  --msg=MSG            Message to be displayed across bottom of image",
         "  --sha=SHA            Hash to be displayed on top right of image",
@@ -28,6 +27,52 @@ class CaptureCommand {
 
     class func printUsage() {
         println(usage())
+    }
+
+    /// dervied values related to the capture command options
+    struct Options {
+        /// Provide mocked default values for metadata if not specified on the
+        /// command line, and automatically open final image for review in the GUI.
+        static var testMode  = false
+
+        // metadata to be used in test mode when nothing is parsed
+        static let testDefaultMessage = "this is a test message i didnt really commit something"
+        static var testDefaultSha: String {
+            return NSUUID().UUIDString.componentsSeparatedByString("-")[0].lowercaseString
+        }
+
+        /// Provided sha/msg parsed from the command line arguments
+        /// If passed, these should always be the first source of truth and
+        /// will override anything found
+        static var parsedMessage, parsedSha: String?
+
+        /// Git repository sha/msg for last commit
+        /// May be nil if not in a repository with current commits
+        static var gitMessage, gitSha: String?
+
+        /// Message that will be used for the final image produced.
+        ///
+        /// Values parsed from the command line will always take precedence.
+        /// If nothing is parsed from the command line, these will be blank,
+        /// unless `--test` mode is specified, in which case default/random
+        /// messages will be used.
+        static var finalMessage: String? {
+            if parsedMessage != nil { return parsedMessage }
+            if testMode             { return testDefaultMessage }
+            return gitMessage
+        }
+
+        /// SHA that will be used for the final image produced.
+        ///
+        /// See `Config.finalMessage` for more details.
+        static var finalSha: String? {
+            if parsedSha != nil     { return parsedSha }
+            if testMode             { return testDefaultSha }
+            return gitSha
+        }
+
+        /// Manually specified device ID by the user
+        static var requestedDeviceID: String?
     }
 
     /// Process dashed options for the CLI
@@ -51,21 +96,13 @@ class CaptureCommand {
                 listDevices(CamSnapper.compatibleDevices())
                 exit(0)
             case "--device":
-                Config.requestedDeviceID = argval
+                Options.requestedDeviceID = argval
             case "-t", "--test":
-                Config.testMode = true
-            case "-g", "--gitinfo":
-                if let parsedInfo = GitInfo.lastCommitInfo() {
-                    Config.parsedSha     = parsedInfo.sha
-                    Config.parsedMessage = parsedInfo.msg
-                } else {
-                    println("something fucked up, probably not in a git repo?")
-                    exit(666)
-                }
+                Options.testMode = true
             case "--msg":
-                Config.parsedMessage = argval
+                Options.parsedMessage = argval
             case "--sha":
-                Config.parsedSha = argval
+                Options.parsedSha = argval
             case "--warmup":
                 if let delayStr = argval {
                     if let delayNum = NSNumberFormatter().numberFromString(delayStr) {
@@ -82,6 +119,15 @@ class CaptureCommand {
                 printUsage()
                 exit(1)
             }
+        }
+    }
+
+    /// Process the git info for the current repository, setting command variables
+    /// as necessary.
+    private class func processGitInfo() {
+        if let gci = GitInfo.lastCommitInfo() {
+            Options.gitSha     = gci.sha
+            Options.gitMessage = gci.msg
         }
     }
 
@@ -116,7 +162,7 @@ class CaptureCommand {
 
     /// Get a default device based on the UI or otherwise, or die violently
     private class func deviceSelect() -> AVCaptureDevice {
-        if let req = Config.requestedDeviceID { // user requested a specific device
+        if let req = Options.requestedDeviceID { // user requested a specific device
             if let matches = CamSnapper.devicesMatchingString(req) {
                 if count(matches) == 1 {
                     return matches.first!
@@ -145,6 +191,9 @@ class CaptureCommand {
         // exit expectedly at this point).
         processOpts(optv)
 
+        // process git info for repository
+        processGitInfo()
+
         // see if the user specified an alternate destination for the file
         if let dfp = destinationFilePath() {
             Config.filePath = dfp
@@ -153,11 +202,11 @@ class CaptureCommand {
         let camera = deviceSelect()
         Logger.debug("using capture device: \(camera)")
 
-        println("📷 lolcommits is preserving this moment in history.")
+        println("📷 \(programName) is preserving this moment in history.")
         if let rawimagedata = CamSnapper.capture(warmupDelay: Config.delay, camera: camera) {
             if let lolimage = LOLImage(data: rawimagedata) {
-                lolimage.topMessage    = Config.finalSha
-                lolimage.bottomMessage = Config.finalMessage
+                lolimage.topMessage    = Options.finalSha
+                lolimage.bottomMessage = Options.finalMessage
 
                 let renderedData = lolimage.render()
                 let writeSuccess = renderedData.writeToFile(Config.filePath, atomically: true)
@@ -169,8 +218,8 @@ class CaptureCommand {
                 }
 
                 // when in test mode, open the image for preview immediately
-                if Config.testMode {
-                    NSWorkspace.sharedWorkspace().openFile(Config.filePath)
+                if Options.testMode {
+                    NSWorkspace.sharedWorkspace().openFile(destination)
                 }
 
                 // we're done, exit successfully
