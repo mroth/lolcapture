@@ -1,16 +1,11 @@
 import Foundation
 
 struct Config {
-    /// current working directory
-    /// TODO: this should be refactored out of config
-    static let cwd = NSFileManager.defaultManager().currentDirectoryPath
-    
-    /// Default file name to use when none is specified.
-    static let defaultFileName = "snapshot.jpg"
-    
-    /// Current filePath where we will write the completed image.
-    /// TODO: implement default destination folder
-    static var filePath: String = cwd.stringByAppendingPathComponent(defaultFileName)
+    /// Default parent destination directory for images
+    static var destination = "~/Pictures/\(programName)"
+
+    /// Default parent destination directory for images in test mode
+    static var testDestination = "/tmp/\(programName)/test-captures"
     
     /// Configured delay for camera warmup during capture process.
     static var delay = 0.75

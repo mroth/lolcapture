@@ -89,6 +89,7 @@ class GitInfo {
 
         let data = results.fileHandleForReading.readDataToEndOfFile()
         let output = NSString(data: data, encoding: NSUTF8StringEncoding) as! String
+        Logger.debug("got git worktree root from system call: \(output)")
         return output.stringByTrimmingCharactersInSet(NSCharacterSet.newlineCharacterSet())
     }
 
