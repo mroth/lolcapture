@@ -37,9 +37,9 @@ class CaptureCommand {
 
         // metadata to be used in test mode when nothing is parsed
         static let testDefaultMessage = "this is a test message i didnt really commit something"
-        static var testDefaultSha: String {
-            return NSUUID().UUIDString.componentsSeparatedByString("-")[0].lowercaseString
-        }
+        static let testDefaultSha =
+            NSUUID().UUIDString.componentsSeparatedByString("-")[0].lowercaseString
+
 
         /// Provided sha/msg parsed from the command line arguments
         /// If passed, these should always be the first source of truth and
