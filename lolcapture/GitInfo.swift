@@ -7,6 +7,22 @@ struct GitCommitInfo {
 
 class GitInfo {
 
+    /// the path to where we think git is, or nil if not found
+    static private var installedGitPath: String? = {
+        let fm = NSFileManager.defaultManager()
+        var isDir = ObjCBool(false)
+        for potentialLocation in ["/usr/local/bin/git", "/usr/bin/git"] {
+            if fm.fileExistsAtPath(potentialLocation, isDirectory: &isDir) {
+                Logger.debug("found git binary at \(potentialLocation)")
+                return potentialLocation
+            }
+        }
+        // this will probably result in a fatal error later on, but don't die
+        // until we *really* need git for something.
+        Logger.debug("WARNING: could not find installed git!")
+        return nil
+    }()
+
     /// return key-value pairs for a git config section
     class func configInfo(section: String = "lolcommits") -> [String: String] {
         var config = [String: String]()
@@ -94,22 +110,11 @@ class GitInfo {
 
     private class func newGitTask(args: [String]) -> NSTask {
         let task = NSTask()
-        task.launchPath = findInstalledGit()! // TODO: need to handle error nicely
+        task.launchPath = installedGitPath! // TODO: need to handle error nicely
         task.arguments = args
         return task
     }
 
-    /// returns the path to where we think git is, or nil if not found
-    private class func findInstalledGit() -> String? {
-        let fm = NSFileManager.defaultManager()
-        var isDir = ObjCBool(false)
-        for potentialLocation in ["/usr/local/bin/git", "/usr/bin/git"] {
-            if fm.fileExistsAtPath(potentialLocation, isDirectory: &isDir) {
-                Logger.debug("found git binary at \(potentialLocation)")
-                return potentialLocation
-            }
-        }
-        return nil
-    }
+
     
 }
