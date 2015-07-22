@@ -260,6 +260,7 @@ class CaptureCommand {
                     println("ERROR: failure writing to file: \(destination)")
                     exit(1)
                 } else {
+                    println("✅ image written to \(destination)")
                     Logger.debug("image successfully written to \(destination)")
                 }
 
