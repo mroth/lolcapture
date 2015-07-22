@@ -1,11 +1,13 @@
 import Foundation
 
-struct GitCommitInfo {
-    var sha: String
-    var msg: String
-}
+
 
 class GitInfo {
+
+    struct GitCommitInfo {
+        var sha: String
+        var msg: String
+    }
 
     /// the path to where we think git is, or nil if not found
     static private var installedGitPath: String? = {
@@ -26,16 +28,10 @@ class GitInfo {
     /// return key-value pairs for a git config section
     class func configInfo(section: String = "lolcommits") -> [String: String] {
         var config = [String: String]()
+        let task = completedGitTask(["config", "-z", "--get-regexp", "^\(section)\\."])
 
-        let task = newGitTask(["config", "-z", "--get-regexp", "^\(section)\\."])
-        let results = NSPipe()
-        task.standardOutput = results
-        task.launch()
-        task.waitUntilExit()
-
-        let data = results.fileHandleForReading.readDataToEndOfFile()
-        let output = NSString(data: data, encoding: NSUTF8StringEncoding) as! String
-        let sections = output.componentsSeparatedByString("\u{0}") // NUL
+        let stdout = task.stdout!
+        let sections = stdout.componentsSeparatedByString("\u{0}") // NUL
         for section in sections {
             let lines = section.componentsSeparatedByString("\n")
             if count(lines) >= 2 {
@@ -50,22 +46,17 @@ class GitInfo {
     ///
     /// can be nil if not in an active repo
     class func lastCommitInfo() -> GitCommitInfo? {
-        let task = newGitTask(["show", "--format=%h%n%s", "--no-patch"])
-        let results = NSPipe()
-        task.standardOutput = results
-        task.launch()
-        task.waitUntilExit()
+        let task = completedGitTask(["show", "--format=%h%n%s", "--no-patch"])
 
         // check exit code, return nil if nonzero
-        if task.terminationStatus != 0 {
+        // TODO: in Swift 2, we can use exceptions for a failure with this
+        // method instead of returning nil in an optional, good practice?
+        if task.exitcode != 0 {
             Logger.debug("attempt to get repo gitinfo was nonzero exit")
             return nil
-            // TODO: in Swift 2, we can use exceptions for a failure with this
-            // method instead of returning nil in an optional, good practice?
         }
 
-        let data = results.fileHandleForReading.readDataToEndOfFile()
-        let output = NSString(data: data, encoding: NSUTF8StringEncoding) as! String
+        let output = task.stdout!
         let lines = output.componentsSeparatedByString("\n")
         Logger.debug("got git info from system call: \(lines)")
         return GitCommitInfo(sha: lines[0], msg: lines[1])
@@ -73,24 +64,19 @@ class GitInfo {
 
     /// returns the root directory for the execution context's current git worktree
     class func currentWorktreeRoot() -> String? {
-        let task = newGitTask(["rev-parse", "--show-toplevel"])
-
-        let results = NSPipe()
-        task.standardOutput = results
-        task.launch()
+        let task = completedGitTask(["rev-parse", "--show-toplevel"])
 
         // check exit code, return nil if nonzero
-        task.waitUntilExit()
-        if task.terminationStatus != 0 {
+        // TODO: in Swift 2, we can use exceptions for a failure with this
+        // method instead of returning nil in an optional, good practice?
+        if task.exitcode != 0 {
+            Logger.debug("attempt to get git worktree root was nonzero exit")
             return nil
-            // TODO: in Swift 2, we can use exceptions for a failure with this
-            // method instead of returning nil in an optional, good practice?
         }
 
-        let data = results.fileHandleForReading.readDataToEndOfFile()
-        let output = NSString(data: data, encoding: NSUTF8StringEncoding) as! String
+        let output = task.stdout!.stringByTrimmingCharactersInSet(NSCharacterSet.newlineCharacterSet())
         Logger.debug("got git worktree root from system call: \(output)")
-        return output.stringByTrimmingCharactersInSet(NSCharacterSet.newlineCharacterSet())
+        return output
     }
 
     /// returns the GIT_DIR for the currently active worktree
@@ -109,13 +95,9 @@ class GitInfo {
         return nil
     }
 
-    private class func newGitTask(args: [String]) -> NSTask {
-        let task = NSTask()
-        task.launchPath = installedGitPath! // TODO: need to handle error nicely
-        task.arguments = args
-        return task
+    private class func completedGitTask(args: [String]) -> ShellUtils.TaskResults {
+        let path = installedGitPath! // TODO: need to handle error nicely
+        return ShellUtils.doTaskWithResults(path, args: args)
     }
-
-
     
 }
