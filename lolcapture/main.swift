@@ -77,8 +77,18 @@ func parseCommand() -> String? {
 
 func pending() {
     // TODO: remove me when no longer needed!
-    println("not yet implemented!")
+    println("⚠️  UNDER CONSTRUCTION ...not yet implemented! ⚠️")
     exit(666)
+}
+
+func parentProcessName() -> String? {
+    let ppid = getppid()
+    Logger.debug("ppid: \(ppid), checking for name")
+
+    // shell out to get name for process, sigh...
+    // seems to be no way to get proc_name for given pid in cocoa?
+    let ps = ShellUtils.doTaskWithResults("/bin/ps", args: ["-co", "command=", "-p", "\(ppid)"])
+    return ps.stdout?.stringByTrimmingCharactersInSet(NSCharacterSet.newlineCharacterSet())
 }
 
 func main() {
@@ -111,7 +121,20 @@ func main() {
             printUsage()
             exit(1)
         }
-    } else { // no command specified at CLI
+    } else {
+        // no command was specified at CLI
+        // first we check if we are being called via git-exec (i.e. a git hook)
+        // if so, we'll want to go ahead and do a default mode capture
+        //
+        // (this allows us to install ourselves as a githook without any wrapper
+        //  scripts to specify options, yay!)
+        if let ppname = parentProcessName() where ppname == "git" {
+            println("parent is: \(ppname) (!)")
+            println("in the future we will execute an automatic capture process at this time")
+            pending()
+        }
+
+        // otherwise, remind the user of possible commands
         printUsage()
         exit(1)
     }
