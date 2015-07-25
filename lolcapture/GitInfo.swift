@@ -99,5 +99,5 @@ class GitInfo {
         let path = installedGitPath! // TODO: need to handle error nicely
         return ShellUtils.doTaskWithResults(path, args: args)
     }
-    
+
 }

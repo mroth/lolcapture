@@ -251,7 +251,9 @@ class CaptureCommand {
 
                 // create any needed intermediate directories for the destination
                 let parent = destination.stringByDeletingLastPathComponent
-                let success = NSFileManager().createDirectoryAtPath(parent, withIntermediateDirectories: true, attributes: nil, error: nil)
+                let success = NSFileManager().createDirectoryAtPath(
+                  parent, withIntermediateDirectories: true, attributes: nil, error: nil
+                )
                 Logger.debug("Making sure intermediate directories are present: \(success)")
 
                 // actually write the file

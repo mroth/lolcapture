@@ -44,7 +44,7 @@ class CamSnapper {
     /// :returns: The captured image data serialized to JPEG encoding.
     class func capture(warmupDelay: NSTimeInterval = 0.0, camera: AVCaptureDevice) -> NSData? {
         let captureSession = AVCaptureSession()
-        
+
         // AVCaptureDevicInput is a failable initializer
         // ...so in theory this should catch failure?
         // ...in which case error proc isn't really needed, just Obj-C legacy
@@ -52,21 +52,21 @@ class CamSnapper {
 
             // begin configuration block
             captureSession.beginConfiguration()
-            
+
             // set session defaults to photo capture
             captureSession.sessionPreset = AVCaptureSessionPresetPhoto
-            
+
             // set default input to the camera
             captureSession.addInput(cameraInput)
-            
+
             // make a still image output object and make it the output target
             var imageOutput = AVCaptureStillImageOutput()
             captureSession.addOutput(imageOutput)
-            
+
             // commit configuration details and start session running
             captureSession.commitConfiguration()
             captureSession.startRunning()
-            
+
             // use dispatch group to know when (async) image capture is done.
             //
             // it's a shame there doesn't seem to be a built-in synchronous way
@@ -75,7 +75,7 @@ class CamSnapper {
             let captureGroup = dispatch_group_create()
             dispatch_group_enter(captureGroup)
             Logger.debug("starting capture task")
-            
+
             // sleep on this thread for delay to enable full camera warm-up.
             //
             // AVFoundation seems to be good at waiting till the camera sees an
@@ -83,10 +83,10 @@ class CamSnapper {
             Logger.debug("sleeping for \(warmupDelay) sec. to allow camera to warmup...")
             NSThread.sleepForTimeInterval(warmupDelay)
             Logger.debug("...warmup complete.")
-            
+
             // make a local optional var to hold the buffer after async capture
             var imageBuffer: CMSampleBuffer? = nil
-            
+
             // do the async capture
             let videoChannel = imageOutput.connectionWithMediaType(AVMediaTypeVideo)
             imageOutput.captureStillImageAsynchronouslyFromConnection(
@@ -113,7 +113,7 @@ class CamSnapper {
             // all good, return some jpeg pics plz
             return AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(imageBuffer)
         }
-        
+
         // we shouldn't ever get here unless we can't get camera input.
         //
         // its unfortunate the results of the failure condition way down here,

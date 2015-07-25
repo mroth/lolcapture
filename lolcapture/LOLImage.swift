@@ -2,10 +2,10 @@ import Foundation
 import AppKit
 
 class LOLImage: NSImage {
-    
+
     /// how much margin to have on the sides of the image
     let marginSize: CGFloat = 10.0
-    
+
     // what size the final image should be after resizing and cropping
     let desiredFinalWidth:  CGFloat = 640.0 // 960.0 is native cropped for new 720p cameras
     let desiredFinalHeight: CGFloat = 480.0 // 720.0 is native cropped for new 720p cameras
@@ -22,12 +22,12 @@ class LOLImage: NSImage {
         self.bottomMessage = bottomMessage
         self.topMessage = topMessage
     }
-    
+
     /// The raw image resized and cropped to the current settings.
     func resizedImage() -> NSImage {
         return LOLImage.resizeImageToFill(self, targetSize: self.desiredFinalSize)
     }
-    
+
     /// Resizes given image to fill target size, while preserving aspect ratio.
     ///
     /// The edges of the image on one plane will be cropped off to maintain the
@@ -44,7 +44,7 @@ class LOLImage: NSImage {
         let widthRatio  = targetSize.width  / imgSize.width
         let heightRatio = targetSize.height / imgSize.height
         Logger.debug("widthRatio: \(widthRatio), heightRatio: \(heightRatio)")
-        
+
         // okay, so what we essentially need to do is make a NSRect of the
         // appropriate size to preframe the image to the desired aspect ratio,
         // so that we can use it as the contextual srcRect for resize operation.
@@ -61,15 +61,15 @@ class LOLImage: NSImage {
         } else {
             cropSize = CGSize(width: imgSize.width, height: imgSize.height)
         }
-        
+
         let croppingRect = NSRect(
             x: (imgSize.width  - cropSize.width)/2,  // 0.5x diff in width
             y: (imgSize.height - cropSize.height)/2, // 0.5x diff in height
             width: cropSize.width,
             height: cropSize.height)
-        
+
         Logger.debug("using croppingRect: \(croppingRect)")
-        
+
         // do actual resize via custom drawingHandler
         // again, need to avoid .lockFocus type stuff because it can cause
         // unexpected results on Retina aware machines.
@@ -93,7 +93,7 @@ class LOLImage: NSImage {
 
         /// what is our available caption width?
         let availableWidth = img.size.width - marginSize*2
-        
+
         // https://developer.apple.com/library/mac/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/CapturingScreenContents/CapturingScreenContents.html#//apple_ref/doc/uid/TP40012302-CH10-SW32
         /// Probably more accurately referred to as a "compositingImage",
         /// because the drawingHandler is overriden to do the composition
@@ -101,9 +101,9 @@ class LOLImage: NSImage {
         /// offscreen by using lockFocus results in unexpected results from
         /// the current graphics context (e.g. retina ruins everything).
         let compositedImage = NSImage(size: img.size, flipped: false, drawingHandler: { frame in
-            
+
             img.drawInRect(frame)
-            
+
             if let topText = self.formattedTextForTopMessage() {
                 let neededLinesToDraw = ceil(topText.size.width / availableWidth)
                 let topRect = NSRect(x: self.marginSize,
@@ -113,7 +113,7 @@ class LOLImage: NSImage {
 
                 topText.drawInRect(topRect)
             }
-            
+
             if let bottomText = self.formattedTextForBottomMessage() {
                 let neededLinesToDraw = ceil(bottomText.size.width / availableWidth)
                 let neededHeightToDraw = bottomText.size.height * neededLinesToDraw
@@ -124,26 +124,26 @@ class LOLImage: NSImage {
 
                 bottomText.drawInRect(botRect)
             }
-            
+
             return true
         })
-        
+
         return compositedImage
     }
-    
+
     /// :returns: Formatted text for the `bottomMessage`.
     /// ...which needs to know its rendered size so it can be bottom aligned
     /// ...and is long so it will probably wrap across multiple lines
     private func formattedTextForBottomMessage() -> NSAttributedString? {
         if let msg = self.bottomMessage {
-            
+
             // TODO: need to get the line-height reduced but this doesnt
             //       seem to work in conjunction with drawInRect cropping.
             //
             //let pStyle = NSMutableParagraphStyle()
             //pStyle.lineSpacing = -9
             //pStyle.lineHeightMultiple = 0.5
-            
+
             let msgString = NSAttributedString(
                 string: msg,
                 attributes: [
@@ -164,7 +164,7 @@ class LOLImage: NSImage {
         if let msg = self.topMessage {
             let rightAlignParagraphStyle = NSMutableParagraphStyle()
             rightAlignParagraphStyle.alignment = NSTextAlignment.RightTextAlignment
-            
+
             let msgString = NSAttributedString(
                 string: msg,
                 attributes: [
@@ -174,24 +174,24 @@ class LOLImage: NSImage {
                     NSForegroundColorAttributeName: NSColor.whiteColor(),
                     NSParagraphStyleAttributeName: rightAlignParagraphStyle
                 ])
-            
+
             return msgString
         } else {
             return nil
         }
     }
-    
+
     /// render the final representation of the image as JPEG data
     func render() -> NSData {
         let compositedImage = compositeTextOverResizedImage()
 
         let imageRep = NSBitmapImageRep(data: compositedImage.TIFFRepresentation!)!
-        
+
         Logger.debug("imageRep.size (in points): \(imageRep.size)")
         Logger.debug("final pixel dimensions: \(imageRep.pixelsWide)x\(imageRep.pixelsHigh)")
-        
+
         let imageData = imageRep.representationUsingType(NSBitmapImageFileType.NSJPEGFileType, properties: [NSImageCompressionFactor: 0.8])
         return imageData!
     }
-    
+
 }

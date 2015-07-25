@@ -1,4 +1,3 @@
-
 import Foundation
 
 /// Dealing with the shell in Swift is really annoying.  Some convenience
@@ -20,7 +19,7 @@ class ShellUtils {
         let (stdoutPipe, stderrPipe) = (NSPipe(), NSPipe())
         task.standardOutput = stdoutPipe
         task.standardError = stderrPipe
-        
+
         task.launch()
         task.waitUntilExit()
 
