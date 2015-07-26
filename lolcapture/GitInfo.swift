@@ -9,7 +9,12 @@ class GitInfo {
         var msg: String
     }
 
-    /// the path to where we think git is, or nil if not found
+    /// Path to where the `git` binary is installed, or `nil` if not found.
+    ///
+    /// For now, we only look in the default Xcode Developer Tools (`/usr/bin`)
+    /// and Homebrew (`/usr/local/bin`), and don't bother to inspect the user's
+    /// $PATH.  This means if the *only* version of Git that is installed is
+    /// something custom, we can fail.
     static private var installedGitPath: String? = {
         for potentialLocation in ["/usr/local/bin/git", "/usr/bin/git"] {
             if ShellUtils.pathExistsAsFile(potentialLocation) {
