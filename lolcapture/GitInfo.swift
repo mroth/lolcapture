@@ -11,10 +11,8 @@ class GitInfo {
 
     /// the path to where we think git is, or nil if not found
     static private var installedGitPath: String? = {
-        let fm = NSFileManager.defaultManager()
-        var isDir = ObjCBool(false)
         for potentialLocation in ["/usr/local/bin/git", "/usr/bin/git"] {
-            if fm.fileExistsAtPath(potentialLocation, isDirectory: &isDir) {
+            if ShellUtils.pathExistsAsFile(potentialLocation) {
                 Logger.debug("found git binary at \(potentialLocation)")
                 return potentialLocation
             }
@@ -87,8 +85,7 @@ class GitInfo {
             // one of those annoying separate-git-dir file pointers instead
             // (in theory anyhow, I've never seen this in the wild...)
             // TODO: support separate-git-dir pointers
-            var isDir = ObjCBool(true)
-            if NSFileManager.defaultManager().fileExistsAtPath(gitdir, isDirectory: &isDir) {
+            if ShellUtils.pathExistsAsDirectory(gitdir) {
                 return gitdir
             }
         }
