@@ -6,6 +6,10 @@ var programIdentifier: String {
     return "\(programName) \(programVersion)"
 }
 
+// we need debug mode to be tracked outside of everything else, if we want to
+// be able to use it debug configuration etc!
+var DEBUG_MODE = false
+
 // yep, these are globally scoped. this is intentional to keep me from
 // overengineering this unnecessarily.  deal with it.
 // system arguments
@@ -27,7 +31,7 @@ let usageGlobalCommands = "\n".join([
     "  disable*             Disable \(programName) for current repository",
     "  capture              Captures an image for the most recent git commit",
     "  browse*              Opens a previous \(programName) image for review",
-    "  config*              Displays current configuration values",
+    "  config               Displays current configuration values and exits",
     "\n* = not yet implemented"
 ])
 let usageGlobalOptions = "\n".join([
@@ -60,7 +64,7 @@ func processGlobalOpts(opts: [String]) {
             println(programIdentifier)
             exit(0)
         case "--debug":
-            Config.debugMode = true
+            DEBUG_MODE = true
         default:
             break
         }
@@ -105,8 +109,7 @@ func main() {
         case "browse":
             pending()
         case "config":
-            //println(GitInfo.configInfo(section: "core"))
-            pending()
+            ConfigCommand.run()
         case "help": // undocumented, but we should respect it if the user needs help...
             printUsage()
             exit(0)

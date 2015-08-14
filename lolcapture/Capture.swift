@@ -105,7 +105,7 @@ class CaptureCommand {
         ///
         /// May end up being overriden by a CLI parsed destination.
         static private var derivedDestination: String {
-            let dir = testMode ? Config.testDestination : Config.destination
+            let dir = testMode ? Config.testDestination.value! : Config.destination.value!
             return dir.stringByExpandingTildeInPath
                       .stringByAppendingPathComponent(derivedDestinationContainerDir)
         }
@@ -166,7 +166,7 @@ class CaptureCommand {
             case "--warmup":
                 if let delayStr = argval {
                     if let delayNum = NSNumberFormatter().numberFromString(delayStr) {
-                        Config.delay = delayNum.doubleValue
+                        Config.delay.value = delayNum.doubleValue
                     }
                 }
 
@@ -240,7 +240,7 @@ class CaptureCommand {
         Logger.debug("using capture device: \(camera)")
 
         println("📷 \(programName) is preserving this moment in history.")
-        if let rawimagedata = CamSnapper.capture(warmupDelay: Config.delay, camera: camera) {
+        if let rawimagedata = CamSnapper.capture(warmupDelay: Config.delay.value!, camera: camera) {
             if let lolimage = LOLImage(data: rawimagedata) {
                 lolimage.topMessage    = Options.finalSha
                 lolimage.bottomMessage = Options.finalMessage

@@ -9,9 +9,11 @@
 /* Begin PBXBuildFile section */
 		EF1B16241B59E4E4002DB7DE /* GitInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1B16231B59E4E4002DB7DE /* GitInfo.swift */; };
 		EF29A1331B5B30F500AAF84A /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF29A1321B5B30F500AAF84A /* Capture.swift */; };
+		EF4F57DE1B80F0830047BC0E /* ConfigCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF4F57DD1B80F0830047BC0E /* ConfigCommand.swift */; };
 		EF56B81D1B605D510085B4D2 /* ShellUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF56B81C1B605D510085B4D2 /* ShellUtils.swift */; };
-		EF8F554C1A96B3DA00FCC289 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8F554B1A96B3DA00FCC289 /* Config.swift */; };
+		EF8F554C1A96B3DA00FCC289 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8F554B1A96B3DA00FCC289 /* config.swift */; };
 		EF8F554E1A96B60D00FCC289 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8F554D1A96B60D00FCC289 /* Logger.swift */; };
+		EFAF69691B7E5E2D0013E529 /* FancyConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAF69681B7E5E2D0013E529 /* FancyConfig.swift */; };
 		EFC22C5C1A89A86400938E42 /* LOLImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFC22C5B1A89A86400938E42 /* LOLImage.swift */; };
 		EFEA72181A896936004483D4 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFEA72171A896936004483D4 /* main.swift */; };
 		EFEA72231A896DB9004483D4 /* CamSnapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFEA72221A896DB9004483D4 /* CamSnapper.swift */; };
@@ -33,9 +35,11 @@
 		EF1B16231B59E4E4002DB7DE /* GitInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GitInfo.swift; sourceTree = "<group>"; };
 		EF29A1321B5B30F500AAF84A /* Capture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Capture.swift; sourceTree = "<group>"; };
 		EF2AF4711A927B6F0068FA06 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
+		EF4F57DD1B80F0830047BC0E /* ConfigCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConfigCommand.swift; sourceTree = "<group>"; };
 		EF56B81C1B605D510085B4D2 /* ShellUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShellUtils.swift; sourceTree = "<group>"; };
-		EF8F554B1A96B3DA00FCC289 /* Config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		EF8F554B1A96B3DA00FCC289 /* config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
 		EF8F554D1A96B60D00FCC289 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		EFAF69681B7E5E2D0013E529 /* FancyConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FancyConfig.swift; sourceTree = "<group>"; };
 		EFC22C5B1A89A86400938E42 /* LOLImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LOLImage.swift; sourceTree = "<group>"; };
 		EFEA72141A896936004483D4 /* lolcapture */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = lolcapture; sourceTree = BUILT_PRODUCTS_DIR; };
 		EFEA72171A896936004483D4 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -57,6 +61,7 @@
 			isa = PBXGroup;
 			children = (
 				EFEA72221A896DB9004483D4 /* CamSnapper.swift */,
+				EFAF69681B7E5E2D0013E529 /* FancyConfig.swift */,
 				EF1B16231B59E4E4002DB7DE /* GitInfo.swift */,
 				EFC22C5B1A89A86400938E42 /* LOLImage.swift */,
 				EF8F554D1A96B60D00FCC289 /* Logger.swift */,
@@ -69,6 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				EF29A1321B5B30F500AAF84A /* Capture.swift */,
+				EF4F57DD1B80F0830047BC0E /* ConfigCommand.swift */,
 			);
 			name = CLI;
 			sourceTree = "<group>";
@@ -95,7 +101,7 @@
 			children = (
 				EF29A1311B5B30DB00AAF84A /* CLI */,
 				EF29A1301B5B302300AAF84A /* Lib */,
-				EF8F554B1A96B3DA00FCC289 /* Config.swift */,
+				EF8F554B1A96B3DA00FCC289 /* config.swift */,
 				EFEA72171A896936004483D4 /* main.swift */,
 			);
 			path = lolcapture;
@@ -158,13 +164,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				EF8F554E1A96B60D00FCC289 /* Logger.swift in Sources */,
+				EF4F57DE1B80F0830047BC0E /* ConfigCommand.swift in Sources */,
 				EFEA72181A896936004483D4 /* main.swift in Sources */,
-				EF8F554C1A96B3DA00FCC289 /* Config.swift in Sources */,
+				EF8F554C1A96B3DA00FCC289 /* config.swift in Sources */,
 				EFEA72231A896DB9004483D4 /* CamSnapper.swift in Sources */,
 				EF56B81D1B605D510085B4D2 /* ShellUtils.swift in Sources */,
 				EF29A1331B5B30F500AAF84A /* Capture.swift in Sources */,
 				EF1B16241B59E4E4002DB7DE /* GitInfo.swift in Sources */,
 				EFC22C5C1A89A86400938E42 /* LOLImage.swift in Sources */,
+				EFAF69691B7E5E2D0013E529 /* FancyConfig.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
