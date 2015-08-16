@@ -239,7 +239,7 @@ class CaptureCommand {
         let camera = deviceSelect()
         Logger.debug("using capture device: \(camera)")
 
-        println("📷 \(programName) is preserving this moment in history.")
+        println("📷 \(programName) is preserving this moment in history…")
         if let rawimagedata = CamSnapper.capture(warmupDelay: Config.delay.value!, camera: camera) {
             if let lolimage = LOLImage(data: rawimagedata) {
 
