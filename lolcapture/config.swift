@@ -19,6 +19,18 @@ struct Config {
         defaultValue: 0.75,
         envVarStub: "DELAY")
 
+    static let imageWidth = FancyConfig.DoubleOption(
+        key: "image-width",
+        description: "Width of final image in pixels",
+        defaultValue: 960.0,
+        envVarStub: "WIDTH")
+
+    static let imageHeight = FancyConfig.DoubleOption(
+        key: "image-height",
+        description: "Height of final image in pixels",
+        defaultValue: 720.0,
+        envVarStub: "HEIGHT")
+
 //    static let debugMode = FancyConfig.BoolOption(
 //        key: "debug-mode",
 //        description: "Controls whether debug messages are logged to STDERR",
@@ -26,5 +38,5 @@ struct Config {
 //        envVarStub: "DEBUG")
 
     /// config options we should show the user in the default UI
-    static let exposedOpts = [destination, delay]
+    static let exposedOpts = [destination, delay, imageWidth, imageHeight]
 }

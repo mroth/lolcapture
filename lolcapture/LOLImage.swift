@@ -7,8 +7,8 @@ class LOLImage: NSImage {
     let marginSize: CGFloat = 10.0
 
     // what size the final image should be after resizing and cropping
-    let desiredFinalWidth:  CGFloat = 640.0 // 960.0 is native cropped for new 720p cameras
-    let desiredFinalHeight: CGFloat = 480.0 // 720.0 is native cropped for new 720p cameras
+    var desiredFinalWidth:  CGFloat = 640.0 // 960.0 is native cropped for new 720p cameras
+    var desiredFinalHeight: CGFloat = 480.0 // 720.0 is native cropped for new 720p cameras
     var desiredFinalSize: CGSize {
         return CGSize(width: desiredFinalWidth, height: desiredFinalHeight)
     }

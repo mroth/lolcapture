@@ -242,8 +242,14 @@ class CaptureCommand {
         println("📷 \(programName) is preserving this moment in history.")
         if let rawimagedata = CamSnapper.capture(warmupDelay: Config.delay.value!, camera: camera) {
             if let lolimage = LOLImage(data: rawimagedata) {
+
                 lolimage.topMessage    = Options.finalSha
                 lolimage.bottomMessage = Options.finalMessage
+
+                if let cw  = Config.imageWidth.value, ch = Config.imageHeight.value {
+                    lolimage.desiredFinalWidth = CGFloat(cw)
+                    lolimage.desiredFinalHeight = CGFloat(ch)
+                }
 
                 // render the composited LOLimage
                 let renderedData = lolimage.render()
