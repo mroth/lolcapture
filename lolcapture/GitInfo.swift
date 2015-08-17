@@ -29,7 +29,7 @@ class GitInfo {
     }()
 
     /// return key-value pairs for a git config section
-    class func configInfo(section: String = "lolcommits") -> [String: String] {
+    class func configInfo(#section: String) -> [String: String] {
         var config = [String: String]()
         let task = completedGitTask(["config", "-z", "--get-regexp", "^\(section)\\."])
 
@@ -42,6 +42,7 @@ class GitInfo {
                 config[k] = v
             }
         }
+        Logger.debug(config.description)
         return config
     }
 

@@ -149,7 +149,8 @@ struct FancyConfig {
         /// Looks for a value of `Option.key` in a gitconfig section determined
         /// by the
         var gitconfigValue: Value? {
-            if let val = FancyConfig.gitConfigInfo[self.key] {
+            let qualifiedKey = GITCONFIG_SECTION + "." + self.key
+            if let val = FancyConfig.gitConfigInfo[qualifiedKey] {
                 return defaultTypeMapper(val)
             }
             return nil
