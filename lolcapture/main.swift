@@ -49,10 +49,7 @@ func usage() -> String {
         "Use `\(programName) [command] --help` for more information about a command."
     ])
 }
-
-func printUsage() {
-    println(usage())
-}
+func printUsage() { println(usage()) }
 
 /// Process global options for the CLI
 ///
@@ -60,6 +57,9 @@ func printUsage() {
 func processGlobalOpts(opts: [String]) {
     for opt in opts {
         switch opt {
+        case "-h", "--help":
+            printUsage()
+            exit(0)
         case "-v", "--version":
             println(programIdentifier)
             exit(0)
@@ -114,12 +114,6 @@ func main() {
             printUsage()
             exit(0)
         default:
-            // before we complain the user typed an unknown command, perhaps they wanted help in yet another way!
-            if contains(optv, "-h") || contains(optv, "--help") {
-                printUsage()
-                exit(0)
-            }
-
             println("unknown command: \(cmd)")
             printUsage()
             exit(1)
