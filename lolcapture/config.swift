@@ -31,12 +31,12 @@ struct Config {
         defaultValue: 720.0,
         envVarStub: "HEIGHT")
 
-//    static let debugMode = FancyConfig.BoolOption(
-//        key: "debug-mode",
-//        description: "Controls whether debug messages are logged to STDERR",
-//        defaultValue: false,
-//        envVarStub: "DEBUG")
+    static let hookForPostCapture = FancyConfig.StringOption(
+        key: "post-hook",
+        description: "Plugin hook to run postcapture",
+        defaultValue: nil,
+        envVarStub: nil)
 
     /// config options we should show the user in the default UI
-    static let exposedOpts = [destination, delay, imageWidth, imageHeight]
+    static let exposedOpts = [destination, delay, imageWidth, imageHeight, hookForPostCapture]
 }

@@ -95,8 +95,7 @@ class CaptureCommand {
 
         /// Best guess at the name of the git repository. For now, this is just
         /// the basename of its worktree root.
-        static private var gitRepoName =
-        GitInfo.currentWorktreeRoot()?.pathComponents.last
+        static private var gitRepoName = GitInfo.currentWorktreeRoot()?.pathComponents.last
 
         /// Subdirectory within the destination where we will place the image file
         static private var derivedDestinationContainerDir = gitRepoName ?? "uncategorized"
@@ -225,6 +224,31 @@ class CaptureCommand {
         exit(13)
     }
 
+    /// If a post-capture plugin has been configured, run it.
+    ///
+    /// The environment will be configured to have a number of helpful variables
+    /// and the filepath of the captured image will be the first argument.
+    private class func runPostcaptureHookIfConfigured() {
+        if let hook = Config.hookForPostCapture.value {
+            println("🔩 running postcapture hook: \(hook.lastPathComponent)")
+            Logger.debug("going to run plugin: \(hook)")
+            let NAMESPACE = programName.uppercaseString
+
+            let task = NSTask()
+            task.launchPath = hook
+            task.environment = [
+                "\(NAMESPACE)_COMMIT_MSG":  Options.finalMessage ?? "",
+                "\(NAMESPACE)_COMMIT_SHA":  Options.finalSha ?? "",
+                "\(NAMESPACE)_REPO_NAME":   Options.derivedDestinationContainerDir,
+                "\(NAMESPACE)_IMAGE":       Options.finalDestinationFilePath
+            ]
+            task.arguments = [Options.finalDestinationFilePath]
+            task.launch()
+            task.waitUntilExit()
+            Logger.debug("plugin completed - status \(task.terminationStatus)")
+        }
+    }
+
     /// Runs the main capture process.
     class func run() {
         // process dashed options to set up global state before command
@@ -269,6 +293,8 @@ class CaptureCommand {
                     exit(1)
                 } else {
                     println("✅ image written to \(destination)")
+                    runPostcaptureHookIfConfigured()
+
                     Logger.debug("image successfully written to \(destination)")
                 }
 

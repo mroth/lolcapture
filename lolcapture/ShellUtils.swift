@@ -35,8 +35,7 @@ class ShellUtils {
         return TaskResults(exitcode: task.terminationStatus, stdout: stdout, stderr: stderr)
     }
 
-
-
+    
     // more swift-y API around a horrible Obj-C function
     class func fileExistsAtPath(path: String) -> (exists: Bool, isDirectory: Bool) {
         var isDir: ObjCBool = false
