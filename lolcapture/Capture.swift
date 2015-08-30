@@ -78,8 +78,8 @@ class CaptureCommand {
         static var parsedDestinationFilePath: String? {
             // MAYBE there is a destination file path specific by user
             // if so with current CLI structure it should be in r_argv[2]
-            if r_argc >= 3 {
-                let parsedFileName = r_argv[2]
+            if Opts.args.endIndex >= 3 {
+                let parsedFileName = Opts.args[2]
 
                 // standardize the path to remove all junk
                 let standardPath = NSString(string: parsedFileName).stringByStandardizingPath
@@ -255,7 +255,7 @@ class CaptureCommand {
         // if any of those dashed options represent a terminating action, that will be
         // handled for us in this method (so there is the possibility our process will
         // exit expectedly at this point).
-        processOpts(optv)
+        processOpts(Opts.flags)
 
         // process git info for repository
         processGitInfo()

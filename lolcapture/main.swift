@@ -12,15 +12,17 @@ var DEBUG_MODE = false
 
 // yep, these are globally scoped. this is intentional to keep me from
 // overengineering this unnecessarily.  deal with it.
-// system arguments
-let argv = NSProcessInfo.processInfo().arguments as! [String]
-let argc = count(argv)
-// options
-let optv = argv.filter({$0.hasPrefix("-")})
-let optc = count(optv)
-// "real" arguments (options/parmams omitted)
-let r_argv = argv.filter({!$0.hasPrefix("-")})
-let r_argc = count(r_argv)
+struct Opts {
+    static private let argv = NSProcessInfo.processInfo().arguments as! [String]
+
+    static var flags = argv.filter({ $0.hasPrefix("-")})
+    static let args  = argv.filter({!$0.hasPrefix("-")})
+
+    static var primaryCommand: String? {
+        return count(args) > 1 ? args[1].lowercaseString : nil
+    }
+
+}
 
 
 let usageGlobalDescription = "Experimental one-step webcam capture and text composition for lolcommits."
@@ -51,9 +53,7 @@ func usage() -> String {
 }
 func printUsage() { println(usage()) }
 
-/// Process global options for the CLI
-///
-/// Mostly these modify the global state for the application process
+
 func processGlobalOpts(opts: [String]) {
     for opt in opts {
         switch opt {
@@ -72,33 +72,18 @@ func processGlobalOpts(opts: [String]) {
 }
 
 
-func parseCommand() -> String? {
-    if r_argc > 1 {
-        return r_argv[1].lowercaseString
-    }
-    return nil
-}
-
 func pending() {
     // TODO: remove me when no longer needed!
     println("⚠️  UNDER CONSTRUCTION ...not yet implemented! ⚠️")
     exit(666)
 }
 
-func parentProcessName() -> String? {
-    let ppid = getppid()
-    Logger.debug("ppid: \(ppid), checking for name")
 
-    // shell out to get name for process, sigh...
-    // seems to be no way to get proc_name for given pid in cocoa?
-    let ps = ShellUtils.doTaskWithResults("/bin/ps", args: ["-co", "command=", "-p", "\(ppid)"])
-    return ps.stdout?.stringByTrimmingCharactersInSet(NSCharacterSet.newlineCharacterSet())
-}
 
 func main() {
-    processGlobalOpts(optv)
+    processGlobalOpts(Opts.flags) //TODO: have all consumed ops swallowed so can be passed long
 
-    if let cmd = parseCommand() {
+    if let cmd = Opts.primaryCommand {
         switch cmd {
         case "enable":
             pending()
@@ -119,23 +104,36 @@ func main() {
             exit(1)
         }
     } else {
-        // no command was specified at CLI
-        // first we check if we are being called via git-exec (i.e. a git hook)
-        // if so, we'll want to go ahead and do a default mode capture
-        //
-        // (this allows us to install ourselves as a githook without any wrapper
-        //  scripts to specify options, yay!)
-        if let ppname = parentProcessName() where ppname == "git" {
-            println("parent is: \(ppname) (!)")
-            println("in the future we will execute an automatic capture process at this time")
-            pending()
-        }
-
-        // otherwise, remind the user of possible commands
-        printUsage()
-        exit(1)
+        defaultCommand()
     }
 
+}
+
+// no command was specified at CLI
+func defaultCommand() {
+    // first we check if we are being called via git-exec (i.e. a git hook)
+    // if so, we'll want to go ahead and do a default mode capture
+    //
+    // (this allows us to install ourselves as a githook without any wrapper
+    //  scripts to specify options, yay!)
+    func parentProcessName() -> String? {
+        let ppid = getppid()
+        Logger.debug("ppid: \(ppid), checking for name")
+
+        // shell out to get name for process, sigh...
+        // seems to be no way to get proc_name for given pid in cocoa?
+        let ps = ShellUtils.doTaskWithResults("/bin/ps", args: ["-co", "command=", "-p", "\(ppid)"])
+        return ps.stdout?.stringByTrimmingCharactersInSet(NSCharacterSet.newlineCharacterSet())
+    }
+    if let ppname = parentProcessName() where ppname == "git" {
+        println("parent is: \(ppname) (!)")
+        println("in the future we will execute an automatic capture process at this time")
+        pending()
+    }
+
+    // otherwise, remind the user of possible commands
+    printUsage()
+    exit(1)
 }
 
 main()
