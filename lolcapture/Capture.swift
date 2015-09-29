@@ -75,38 +75,36 @@ class CaptureCommand {
         /// Destination that was (maybe) manually specified on the command line
         ///
         /// Normalizes both relative and absolute paths.
-        static var parsedDestinationFilePath: String? {
+        static var parsedDestinationFileURL: NSURL? {
             // MAYBE there is a destination file path specific by user
             // if so with current CLI structure it should be in r_argv[2]
             if Opts.args.endIndex >= 3 {
+                // manually bridge back to NSString to retain path methods
                 let parsedFileName = Opts.args[2]
 
-                // standardize the path to remove all junk
-                let standardPath = NSString(string: parsedFileName).stringByStandardizingPath
-
-                // if not an absolute path, prepend the current working directory
-                let absPath = NSString(string: parsedFileName).absolutePath
-                let cwd = NSFileManager.defaultManager().currentDirectoryPath
-                let parsedFilePath = absPath ? standardPath : cwd.stringByAppendingPathComponent(standardPath)
-                return parsedFilePath
+                // nsurl automatically converts to an absolute path if necessary
+                // smart enough to handle everything but tilde expansion (which
+                // msut be done with a nsstring method).  inconsistent...
+                return NSURL(fileURLWithPath: parsedFileName.NS.stringByExpandingTildeInPath)
             }
             return nil
         }
 
         /// Best guess at the name of the git repository. For now, this is just
         /// the basename of its worktree root.
-        static private var gitRepoName = GitInfo.currentWorktreeRoot()?.pathComponents.last
+        static private var gitRepoName = GitInfo.currentWorktreeRoot()?.pathComponents?.last
 
         /// Subdirectory within the destination where we will place the image file
-        static private var derivedDestinationContainerDir = gitRepoName ?? "uncategorized"
+        static private var derivedDestinationDirName = gitRepoName ?? "uncategorized"
 
         /// Derived destination directory based on options/config combo.
         ///
         /// May end up being overriden by a CLI parsed destination.
-        static private var derivedDestination: String {
-            let dir = testMode ? Config.testDestination.value! : Config.destination.value!
-            return dir.stringByExpandingTildeInPath
-                      .stringByAppendingPathComponent(derivedDestinationContainerDir)
+        static private var derivedDestinationDir: NSURL {
+            let parentDir = (testMode ? Config.testDestination.value! : Config.destination.value!)
+            let expandedParent = parentDir.NS.stringByExpandingTildeInPath
+            return NSURL(fileURLWithPath: expandedParent, isDirectory: true)
+                .URLByAppendingPathComponent(derivedDestinationDirName, isDirectory: true)
         }
 
         /// Derived filename to use when writing image.
@@ -116,18 +114,24 @@ class CaptureCommand {
         ///
         /// May end up being overriden by a CLI parsed destination.
         static private var derivedFileName: String {
-            return (finalSha ?? "snapshot").stringByAppendingPathExtension("jpg")!
+            // TODO: eventually this may be required to do via
+            // NSURL.URLbyAppendingPathExtension instead, but that seems like
+            // it would be too verbose because I just want the filename out the
+            // URL, so would be a lot of conversion.  So for now, just bridge
+            // back to NSString and use path methods.
+            let filenameBase = finalSha ?? "snapshot"
+            return filenameBase.NS.stringByAppendingPathExtension("jpg")!
         }
 
-        /// Derived destination file path where we will write the file, as long
+        /// Derived destination file URL where we will write the file, as long
         /// as we are not overriden by a CLI parsed manual destination.
-        static private var derivedDestinationFilePath: String {
-           return derivedDestination.stringByAppendingPathComponent(derivedFileName)
+        static private var derivedDestinationFileURL: NSURL {
+           return derivedDestinationDir.URLByAppendingPathComponent(derivedFileName)
         }
 
-        /// Actual destination file path where we will attempt to write
-        static var finalDestinationFilePath: String {
-            return parsedDestinationFilePath ?? derivedDestinationFilePath
+        /// Actual destination file URL where we will attempt to write
+        static var finalDestinationFileURL: NSURL {
+            return parsedDestinationFileURL ?? derivedDestinationFileURL
         }
 
         /// Manually specified device ID by the user
@@ -230,7 +234,7 @@ class CaptureCommand {
     /// and the filepath of the captured image will be the first argument.
     private class func runPostcaptureHookIfConfigured() {
         if let hook = Config.hookForPostCapture.value {
-            print("🔩 running postcapture hook: \(hook.lastPathComponent)")
+            print("🔩 running postcapture hook: \(hook.NS.lastPathComponent)")
             Logger.debug("going to run plugin: \(hook)")
             let NAMESPACE = programName.uppercaseString
 
@@ -239,10 +243,10 @@ class CaptureCommand {
             task.environment = [
                 "\(NAMESPACE)_COMMIT_MSG":  Options.finalMessage ?? "",
                 "\(NAMESPACE)_COMMIT_SHA":  Options.finalSha ?? "",
-                "\(NAMESPACE)_REPO_NAME":   Options.derivedDestinationContainerDir,
-                "\(NAMESPACE)_IMAGE":       Options.finalDestinationFilePath
+                "\(NAMESPACE)_REPO_NAME":   Options.derivedDestinationDirName,
+                "\(NAMESPACE)_IMAGE":       Options.finalDestinationFileURL.path!
             ]
-            task.arguments = [Options.finalDestinationFilePath]
+            task.arguments = [Options.finalDestinationFileURL.path!]
             task.launch()
             task.waitUntilExit()
             Logger.debug("plugin completed - status \(task.terminationStatus)")
@@ -277,13 +281,13 @@ class CaptureCommand {
 
                 // render the composited LOLimage
                 let renderedData = lolimage.render()
-                let destination = Options.finalDestinationFilePath
+                let destination = Options.finalDestinationFileURL
 
                 // create any needed intermediate directories for the destination
-                let parent = destination.stringByDeletingLastPathComponent
+                let parent = destination.URLByDeletingLastPathComponent!
                 let success: Bool
                 do {
-                    try NSFileManager().createDirectoryAtPath(
+                    try NSFileManager().createDirectoryAtURL(
                                       parent, withIntermediateDirectories: true, attributes: nil)
                     success = true
                 } catch _ {
@@ -292,7 +296,7 @@ class CaptureCommand {
                 Logger.debug("Making sure intermediate directories are present: \(success)")
 
                 // actually write the file
-                let writeSuccess = renderedData.writeToFile(destination, atomically: true)
+                let writeSuccess = renderedData.writeToURL(destination, atomically: true)
                 if !writeSuccess {
                     print("ERROR: failure writing to file: \(destination)")
                     exit(1)
@@ -305,7 +309,7 @@ class CaptureCommand {
 
                 // when in test mode, open the image for preview immediately
                 if Options.testMode {
-                    NSWorkspace.sharedWorkspace().openFile(destination)
+                    NSWorkspace.sharedWorkspace().openURL(destination)
                 }
 
                 // we're done, exit successfully

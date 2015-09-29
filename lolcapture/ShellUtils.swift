@@ -60,3 +60,15 @@ class ShellUtils {
     }
 
 }
+
+public extension String {
+    /// Bridge String to a NSString (shorthand)
+    ///
+    /// Workaround to change in Swift 2.0 whereby all the path methods are
+    /// gone from string.  Sure, you can use NSURL for a lot of stuff, but
+    /// you still need the NSString path methods to do things like properly
+    /// prepare strings to init in a URL! Annoying annoying annoying.
+    ///
+    /// See: https://forums.developer.apple.com/thread/13580
+    var NS: NSString { return self as NSString }
+}
