@@ -137,7 +137,7 @@ struct FancyConfig {
         var environmentValue: Value? {
             if let
                 key = self.environmentVariable,
-                val = FancyConfig.environment[key] as? String
+                val = FancyConfig.environment[key]
             {
                 return defaultTypeMapper(val)
             }
