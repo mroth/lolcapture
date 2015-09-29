@@ -116,7 +116,7 @@ class LOLImage: NSImage {
 
             if let bottomText = self.formattedTextForBottomMessage() {
                 let neededLinesToDraw = ceil(bottomText.size().width / availableWidth)
-                let neededHeightToDraw = bottomText.size.height * neededLinesToDraw
+                let neededHeightToDraw = bottomText.size().height * neededLinesToDraw
                 let botRect = NSRect(x: self.marginSize,
                                      y: 0,
                                      width: availableWidth,
@@ -163,7 +163,7 @@ class LOLImage: NSImage {
     private func formattedTextForTopMessage() -> NSAttributedString? {
         if let msg = self.topMessage {
             let rightAlignParagraphStyle = NSMutableParagraphStyle()
-            rightAlignParagraphStyle.alignment = NSTextAlignment.RightTextAlignment
+            rightAlignParagraphStyle.alignment = NSTextAlignment.Right
 
             let msgString = NSAttributedString(
                 string: msg,
