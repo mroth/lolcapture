@@ -5,7 +5,7 @@ class CamSnapper {
 
     /// What is the currently preferred capture device?
     ///
-    /// :returns: The default device used to capture photographic images.
+    /// - returns: The default device used to capture photographic images.
     class func preferredDevice() -> AVCaptureDevice? {
         // TODO: figure out what's up with the below being implicitly unwrapped.
         //
@@ -19,7 +19,7 @@ class CamSnapper {
     /// Returns a list of all devices that are capable of capturing images
     class func compatibleDevices() -> [AVCaptureDevice]? {
         let devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo) as! [AVCaptureDevice]
-        if count(devices) == 0 { return nil }
+        if devices.count == 0 { return nil }
         return devices
     }
 
@@ -31,7 +31,7 @@ class CamSnapper {
                 $0.localizedName.lowercaseString.rangeOfString(query) != nil
             }
             // only return the match array if it actually contains a match
-            if count(matches) > 0 {
+            if matches.count > 0 {
                 return matches
             }
         }
@@ -40,15 +40,15 @@ class CamSnapper {
 
     /// Do the main capture!
     ///
-    /// :param: warmupDelay How long to delay capture for warmup (default: 0.0).
-    /// :returns: The captured image data serialized to JPEG encoding.
+    /// - parameter warmupDelay: How long to delay capture for warmup (default: 0.0).
+    /// - returns: The captured image data serialized to JPEG encoding.
     class func capture(warmupDelay: NSTimeInterval = 0.0, camera: AVCaptureDevice) -> NSData? {
         let captureSession = AVCaptureSession()
 
         // AVCaptureDevicInput is a failable initializer
         // ...so in theory this should catch failure?
         // ...in which case error proc isn't really needed, just Obj-C legacy
-        if let cameraInput = AVCaptureDeviceInput(device: camera, error: nil) {
+        if let cameraInput = try? AVCaptureDeviceInput(device: camera) {
 
             // begin configuration block
             captureSession.beginConfiguration()
@@ -60,7 +60,7 @@ class CamSnapper {
             captureSession.addInput(cameraInput)
 
             // make a still image output object and make it the output target
-            var imageOutput = AVCaptureStillImageOutput()
+            let imageOutput = AVCaptureStillImageOutput()
             captureSession.addOutput(imageOutput)
 
             // commit configuration details and start session running
@@ -106,7 +106,7 @@ class CamSnapper {
 
             // dispatch actually had timed out if results are non-zero
             if dispatchResults != 0 {
-                println("ERROR! Timed out waiting for camera data.")
+                print("ERROR! Timed out waiting for camera data.")
                 return nil
             }
 

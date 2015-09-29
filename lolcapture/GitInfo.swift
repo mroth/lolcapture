@@ -29,7 +29,7 @@ class GitInfo {
     }()
 
     /// return key-value pairs for a git config section
-    class func configInfo(#section: String) -> [String: String] {
+    class func configInfo(section section: String) -> [String: String] {
         var config = [String: String]()
         let task = completedGitTask(["config", "-z", "--get-regexp", "^\(section)\\."])
 
@@ -37,7 +37,7 @@ class GitInfo {
         let sections = stdout.componentsSeparatedByString("\u{0}") // NUL
         for section in sections {
             let lines = section.componentsSeparatedByString("\n")
-            if count(lines) >= 2 {
+            if lines.count >= 2 {
                 let (k,v) = (lines[0], lines[1])
                 config[k] = v
             }

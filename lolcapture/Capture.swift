@@ -6,7 +6,7 @@ class CaptureCommand {
 
     static let usageCommandDescription = "Captures an image for the most recent git commit."
     static let usageCommandSignature = "Usage: \(programName) capture [options] <destination>"
-    static let usageCommandOptions = "\n".join([
+    static let usageCommandOptions = [
         "Options:",
         "  -l, --list           List available capture devices and exit",
         "  --device=ID          Use specified capture device (matches name or id)",
@@ -14,19 +14,19 @@ class CaptureCommand {
         "  --msg=MSG            Message to be displayed across bottom of image",
         "  --sha=SHA            Hash to be displayed on top right of image",
         "  --warmup=N           Delay capture by N seconds (default: \(Config.delay))"
-    ])
+    ].joinWithSeparator("\n")
 
     class func usage() -> String {
-        return "\n\n".join([
+        return [
             usageCommandSignature,
             usageCommandDescription,
             usageCommandOptions,
             usageGlobalOptions
-            ])
+            ].joinWithSeparator("\n\n")
     }
 
     class func printUsage() {
-        println(usage())
+        print(usage())
     }
 
     /// dervied values related to the capture command options
@@ -140,12 +140,12 @@ class CaptureCommand {
     /// certain options are actually mapped to actions that exit the process after
     /// completing.
     ///
-    /// :param: opts all dashed options parsed from the command line
+    /// - parameter opts: all dashed options parsed from the command line
     private class func processOpts(opts: [String]) {
         for opt in opts {
             let splitArg = opt.componentsSeparatedByString("=")
-            var argkey: String  = splitArg[0]
-            var argval: String? = splitArg.count > 1 ? splitArg[1] : nil
+            let argkey: String  = splitArg[0]
+            let argval: String? = splitArg.count > 1 ? splitArg[1] : nil
 
             switch argkey {
             case "-h", "--help":
@@ -174,7 +174,7 @@ class CaptureCommand {
                 break
             // otherwise, if we don't recognize it we should inform the user
             default:
-                println("Unknown option: \(opt)\n")
+                print("Unknown option: \(opt)\n")
                 printUsage()
                 exit(1)
             }
@@ -192,11 +192,11 @@ class CaptureCommand {
 
     /// Prints a formatted list of devices to STDOUT
     ///
-    /// :param: devices List of devices to print.
+    /// - parameter devices: List of devices to print.
     class func listDevices(devices: [AVCaptureDevice]?) {
         if devices?.isEmpty == false {
             for d in devices! {
-                println("📷 \(d.localizedName) [\(d.uniqueID)]")
+                print("📷 \(d.localizedName) [\(d.uniqueID)]")
             }
         }
     }
@@ -205,12 +205,12 @@ class CaptureCommand {
     private class func deviceSelect() -> AVCaptureDevice {
         if let req = Options.requestedDeviceID { // user requested a specific device
             if let matches = CamSnapper.devicesMatchingString(req) {
-                if count(matches) == 1 {
+                if matches.count == 1 {
                     return matches.first!
                 } else {
-                    println("Multiple input devices matched your request: \(req)")
+                    print("Multiple input devices matched your request: \(req)")
                     listDevices(matches)
-                    println("\n... could you please be more specific?")
+                    print("\n... could you please be more specific?")
                     exit(1)
                 }
             }
@@ -220,7 +220,7 @@ class CaptureCommand {
         }
 
         // ruh roh, no camera found at all!
-        println("🚫 no matching capture devices found")
+        print("🚫 no matching capture devices found")
         exit(13)
     }
 
@@ -230,7 +230,7 @@ class CaptureCommand {
     /// and the filepath of the captured image will be the first argument.
     private class func runPostcaptureHookIfConfigured() {
         if let hook = Config.hookForPostCapture.value {
-            println("🔩 running postcapture hook: \(hook.lastPathComponent)")
+            print("🔩 running postcapture hook: \(hook.lastPathComponent)")
             Logger.debug("going to run plugin: \(hook)")
             let NAMESPACE = programName.uppercaseString
 
@@ -263,8 +263,8 @@ class CaptureCommand {
         let camera = deviceSelect()
         Logger.debug("using capture device: \(camera)")
 
-        println("📷 \(programName) is preserving this moment in history…")
-        if let rawimagedata = CamSnapper.capture(warmupDelay: Config.delay.value!, camera: camera) {
+        print("📷 \(programName) is preserving this moment in history…")
+        if let rawimagedata = CamSnapper.capture(Config.delay.value!, camera: camera) {
             if let lolimage = LOLImage(data: rawimagedata) {
 
                 lolimage.topMessage    = Options.finalSha
@@ -281,18 +281,23 @@ class CaptureCommand {
 
                 // create any needed intermediate directories for the destination
                 let parent = destination.stringByDeletingLastPathComponent
-                let success = NSFileManager().createDirectoryAtPath(
-                  parent, withIntermediateDirectories: true, attributes: nil, error: nil
-                )
+                let success: Bool
+                do {
+                    try NSFileManager().createDirectoryAtPath(
+                                      parent, withIntermediateDirectories: true, attributes: nil)
+                    success = true
+                } catch _ {
+                    success = false
+                }
                 Logger.debug("Making sure intermediate directories are present: \(success)")
 
                 // actually write the file
                 let writeSuccess = renderedData.writeToFile(destination, atomically: true)
                 if !writeSuccess {
-                    println("ERROR: failure writing to file: \(destination)")
+                    print("ERROR: failure writing to file: \(destination)")
                     exit(1)
                 } else {
-                    println("✅ image written to \(destination)")
+                    print("✅ image written to \(destination)")
                     runPostcaptureHookIfConfigured()
 
                     Logger.debug("image successfully written to \(destination)")
@@ -306,11 +311,11 @@ class CaptureCommand {
                 // we're done, exit successfully
                 exit(0)
             } else {
-                println("ERROR: Didn't understand the image data we got back from camera.")
+                print("ERROR: Didn't understand the image data we got back from camera.")
                 exit(1)
             }
         } else {
-            println("ERROR: Unable to capture image from camera for some reason.")
+            print("ERROR: Unable to capture image from camera for some reason.")
             exit(1)
         }
     }
