@@ -266,62 +266,62 @@ class CaptureCommand {
 
         let camera = deviceSelect()
         Logger.debug("using capture device: \(camera)")
-
         print("📷 \(programName) is preserving this moment in history…")
-        if let rawimagedata = CamSnapper.capture(Config.delay.value!, camera: camera) {
-            if let lolimage = LOLImage(data: rawimagedata) {
 
-                lolimage.topMessage    = Options.finalSha
-                lolimage.bottomMessage = Options.finalMessage
-
-                if let cw  = Config.imageWidth.value, ch = Config.imageHeight.value {
-                    lolimage.desiredFinalWidth = CGFloat(cw)
-                    lolimage.desiredFinalHeight = CGFloat(ch)
-                }
-
-                // render the composited LOLimage
-                let renderedData = lolimage.render()
-                let destination = Options.finalDestinationFileURL
-
-                // create any needed intermediate directories for the destination
-                let parent = destination.URLByDeletingLastPathComponent!
-                let success: Bool
-                do {
-                    try NSFileManager().createDirectoryAtURL(
-                                      parent, withIntermediateDirectories: true, attributes: nil)
-                    success = true
-                } catch _ {
-                    success = false
-                }
-                Logger.debug("Making sure intermediate directories are present: \(success)")
-
-                // actually write the file
-                let writeSuccess = renderedData.writeToURL(destination, atomically: true)
-                if !writeSuccess {
-                    print("ERROR: failure writing to file: \(destination)")
-                    exit(1)
-                } else {
-                    print("✅ image written to \(destination)")
-                    runPostcaptureHookIfConfigured()
-
-                    Logger.debug("image successfully written to \(destination)")
-                }
-
-                // when in test mode, open the image for preview immediately
-                if Options.testMode {
-                    NSWorkspace.sharedWorkspace().openURL(destination)
-                }
-
-                // we're done, exit successfully
-                exit(0)
-            } else {
-                print("ERROR: Didn't understand the image data we got back from camera.")
-                exit(1)
-            }
-        } else {
+        guard let rawimagedata = CamSnapper.capture(Config.delay.value!, camera: camera) else {
             print("ERROR: Unable to capture image from camera for some reason.")
             exit(1)
         }
+
+        guard let lolimage = LOLImage(data: rawimagedata) else {
+            print("ERROR: Didn't understand the image data we got back from camera.")
+            exit(1)
+        }
+
+        lolimage.topMessage    = Options.finalSha
+        lolimage.bottomMessage = Options.finalMessage
+
+        // override image dimensions from prefs if present
+        if let cw  = Config.imageWidth.value, ch = Config.imageHeight.value {
+            lolimage.desiredFinalWidth = CGFloat(cw)
+            lolimage.desiredFinalHeight = CGFloat(ch)
+        }
+
+        // render the composited LOLimage
+        let renderedData = lolimage.render()
+        let destination = Options.finalDestinationFileURL
+
+        // create any needed intermediate directories for the destination
+        let parent = destination.URLByDeletingLastPathComponent!
+        let success: Bool
+        do {
+            try NSFileManager().createDirectoryAtURL(
+                              parent, withIntermediateDirectories: true, attributes: nil)
+            success = true
+        } catch _ {
+            success = false
+        }
+        Logger.debug("Making sure intermediate directories are present: \(success)")
+
+        // actually write the file
+        let writeSuccess = renderedData.writeToURL(destination, atomically: true)
+        if !writeSuccess {
+            print("ERROR: failure writing to file: \(destination)")
+            exit(1)
+        } else {
+            print("✅ image written to \(destination)")
+            runPostcaptureHookIfConfigured()
+
+            Logger.debug("image successfully written to \(destination)")
+        }
+
+        // when in test mode, open the image for preview immediately
+        if Options.testMode {
+            NSWorkspace.sharedWorkspace().openURL(destination)
+        }
+
+        // we're done, exit successfully
+        exit(0)
     }
 
 }
