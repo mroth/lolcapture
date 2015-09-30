@@ -198,10 +198,9 @@ class CaptureCommand {
     ///
     /// - parameter devices: List of devices to print.
     class func listDevices(devices: [AVCaptureDevice]?) {
-        if devices?.isEmpty == false {
-            for d in devices! {
-                print("📷 \(d.localizedName) [\(d.uniqueID)]")
-            }
+        guard let deviceList = devices else { return }
+        for d in deviceList {
+            print("📷 \(d.localizedName) [\(d.uniqueID)]")
         }
     }
 
