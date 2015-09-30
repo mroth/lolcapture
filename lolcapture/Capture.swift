@@ -288,31 +288,28 @@ class CaptureCommand {
 
         // render the composited LOLimage
         let renderedData = lolimage.render()
-        let destination = Options.finalDestinationFileURL
 
         // create any needed intermediate directories for the destination
+        let destination = Options.finalDestinationFileURL
         let parent = destination.URLByDeletingLastPathComponent!
-        let success: Bool
         do {
-            try NSFileManager().createDirectoryAtURL(
-                              parent, withIntermediateDirectories: true, attributes: nil)
-            success = true
-        } catch _ {
-            success = false
+            try NSFileManager().createDirectoryAtURL(parent, withIntermediateDirectories: true,
+                                                     attributes: nil)
+        } catch {
+            print("ERROR: could not ensure presence of destination directory: \(parent)")
+            print("Error reason: \(error)")
+            exit(1)
         }
-        Logger.debug("Making sure intermediate directories are present: \(success)")
 
         // actually write the file
         let writeSuccess = renderedData.writeToURL(destination, atomically: true)
         if !writeSuccess {
             print("ERROR: failure writing to file: \(destination)")
             exit(1)
-        } else {
-            print("✅ image written to \(destination)")
-            runPostcaptureHookIfConfigured()
-
-            Logger.debug("image successfully written to \(destination)")
         }
+        Logger.debug("image successfully written to \(destination)")
+        print("✅ image written to \(destination)")
+        runPostcaptureHookIfConfigured()
 
         // when in test mode, open the image for preview immediately
         if Options.testMode {
