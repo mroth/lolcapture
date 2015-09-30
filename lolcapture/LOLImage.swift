@@ -33,9 +33,9 @@ class LOLImage: NSImage {
     /// The edges of the image on one plane will be cropped off to maintain the
     /// original pixel aspect ratio while allowing arbitrary boundaries.
     ///
-    /// :param: image Image to be resized
-    /// :param: targetSize Desired size of the resulting image
-    /// :returns: A new lovely resized-to-fill image.
+    /// - parameter image: Image to be resized
+    /// - parameter targetSize: Desired size of the resulting image
+    /// - returns: A new lovely resized-to-fill image.
     class func resizeImageToFill(image: NSImage, targetSize: CGSize) -> NSImage {
         let imgSize = image.size
         Logger.debug("image size: \(imgSize), target size: \(targetSize)")
@@ -86,7 +86,7 @@ class LOLImage: NSImage {
 
     /// Composites LOLText over the resized image.
     ///
-    /// :returns: Image resized to current settings, with LOLtext applied.
+    /// - returns: Image resized to current settings, with LOLtext applied.
     private func compositeTextOverResizedImage() -> NSImage {
         /// a local copy of whatever image data we need
         let img = resizedImage()
@@ -105,7 +105,7 @@ class LOLImage: NSImage {
             img.drawInRect(frame)
 
             if let topText = self.formattedTextForTopMessage() {
-                let neededLinesToDraw = ceil(topText.size.width / availableWidth)
+                let neededLinesToDraw = ceil(topText.size().width / availableWidth)
                 let topRect = NSRect(x: self.marginSize,
                                      y: 0,
                                      width: availableWidth,
@@ -115,8 +115,8 @@ class LOLImage: NSImage {
             }
 
             if let bottomText = self.formattedTextForBottomMessage() {
-                let neededLinesToDraw = ceil(bottomText.size.width / availableWidth)
-                let neededHeightToDraw = bottomText.size.height * neededLinesToDraw
+                let neededLinesToDraw = ceil(bottomText.size().width / availableWidth)
+                let neededHeightToDraw = bottomText.size().height * neededLinesToDraw
                 let botRect = NSRect(x: self.marginSize,
                                      y: 0,
                                      width: availableWidth,
@@ -131,7 +131,7 @@ class LOLImage: NSImage {
         return compositedImage
     }
 
-    /// :returns: Formatted text for the `bottomMessage`.
+    /// - returns: Formatted text for the `bottomMessage`.
     /// ...which needs to know its rendered size so it can be bottom aligned
     /// ...and is long so it will probably wrap across multiple lines
     private func formattedTextForBottomMessage() -> NSAttributedString? {
@@ -159,11 +159,11 @@ class LOLImage: NSImage {
         }
     }
 
-    /// :returns: Formatted text for the `topMessage`.
+    /// - returns: Formatted text for the `topMessage`.
     private func formattedTextForTopMessage() -> NSAttributedString? {
         if let msg = self.topMessage {
             let rightAlignParagraphStyle = NSMutableParagraphStyle()
-            rightAlignParagraphStyle.alignment = NSTextAlignment.RightTextAlignment
+            rightAlignParagraphStyle.alignment = NSTextAlignment.Right
 
             let msgString = NSAttributedString(
                 string: msg,

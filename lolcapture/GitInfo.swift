@@ -29,7 +29,7 @@ class GitInfo {
     }()
 
     /// return key-value pairs for a git config section
-    class func configInfo(#section: String) -> [String: String] {
+    class func configInfo(section section: String) -> [String: String] {
         var config = [String: String]()
         let task = completedGitTask(["config", "-z", "--get-regexp", "^\(section)\\."])
 
@@ -37,7 +37,7 @@ class GitInfo {
         let sections = stdout.componentsSeparatedByString("\u{0}") // NUL
         for section in sections {
             let lines = section.componentsSeparatedByString("\n")
-            if count(lines) >= 2 {
+            if lines.count >= 2 {
                 let (k,v) = (lines[0], lines[1])
                 config[k] = v
             }
@@ -67,7 +67,7 @@ class GitInfo {
     }
 
     /// returns the root directory for the execution context's current git worktree
-    class func currentWorktreeRoot() -> String? {
+    class func currentWorktreeRoot() -> NSURL? {
         let task = completedGitTask(["rev-parse", "--show-toplevel"])
 
         // check exit code, return nil if nonzero
@@ -80,18 +80,18 @@ class GitInfo {
 
         let output = task.stdout!.stringByTrimmingCharactersInSet(NSCharacterSet.newlineCharacterSet())
         Logger.debug("got git worktree root from system call: \(output)")
-        return output
+        return NSURL(fileURLWithPath: output)
     }
 
     /// returns the GIT_DIR for the currently active worktree
-    class func currentWorktreeGitDir() -> String? {
+    class func currentWorktreeGitDir() -> NSURL? {
         if let cwtr = currentWorktreeRoot() {
-            let gitdir = cwtr.stringByAppendingPathComponent(".git")
+            let gitdir = cwtr.URLByAppendingPathComponent(".git")
             // verify it's a directory before returning, because it could be
             // one of those annoying separate-git-dir file pointers instead
             // (in theory anyhow, I've never seen this in the wild...)
             // TODO: support separate-git-dir pointers
-            if ShellUtils.pathExistsAsDirectory(gitdir) {
+            if ShellUtils.pathExistsAsDirectory(gitdir.path!) {
                 return gitdir
             }
         }

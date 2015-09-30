@@ -3,8 +3,8 @@ import Foundation
 extension String {
     /// Truncates the string to length number of chars & appends "…" if longer
     func truncate(length: Int) -> String {
-        if count(self) > length {
-            return self.substringToIndex(advance(self.startIndex, length-1)) + "…"
+        if self.characters.count > length {
+            return self.substringToIndex(self.startIndex.advancedBy(length-1)) + "…"
         } else {
             return self
         }
@@ -12,7 +12,7 @@ extension String {
 
     /// Like Ruby ljust plus truncation if over length
     func ljust(width: Int) -> String {
-        let length = count(self)
+        let length = self.characters.count
         if length >= width {
             return self.truncate(width)
         } else {
@@ -38,28 +38,28 @@ class ConfigCommand {
         let maxKeyLen = 23
         let maxEnvLen = 20
         let maxSrcLen = 8
-        let maxValLen = maxLen - (maxKeyLen+maxEnvLen+maxSrcLen) - count(spacer)*3
+        let maxValLen = maxLen - (maxKeyLen+maxEnvLen+maxSrcLen) - spacer.characters.count*3
 
-        println(spacer.join([
+        print([
             "Config Key".ljust(maxKeyLen),
             "Environment Variable".ljust(maxEnvLen),
             "Configured Value".ljust(maxValLen),
             "Source".ljust(maxSrcLen)
-            ]))
+            ].joinWithSeparator(spacer))
 
-        println(spacer.join([
+        print([
             String(count: maxKeyLen, repeatedValue: Character("-")),
             String(count: maxEnvLen, repeatedValue: Character("-")),
             String(count: maxValLen, repeatedValue: Character("-")),
             String(count: maxSrcLen, repeatedValue: Character("-"))
-            ]))
+            ].joinWithSeparator(spacer))
 
         for opt in Config.exposedOpts {
             let key = "\(FancyConfig.GITCONFIG_SECTION).\(opt.key)".ljust(maxKeyLen)
             let env = (opt.environmentVariable ?? "").ljust(maxEnvLen)
             let val = opt._value.description.ljust(maxValLen)
             let src = opt.source.description.ljust(maxSrcLen)
-            println(spacer.join([key, env, val, src]))
+            print([key, env, val, src].joinWithSeparator(spacer))
         }
     }
 }

@@ -13,21 +13,20 @@ var DEBUG_MODE = false
 // yep, these are globally scoped. this is intentional to keep me from
 // overengineering this unnecessarily.  deal with it.
 struct Opts {
-    static private let argv = NSProcessInfo.processInfo().arguments as! [String]
+    static private let argv = NSProcessInfo.processInfo().arguments 
 
     static var flags = argv.filter({ $0.hasPrefix("-")})
     static let args  = argv.filter({!$0.hasPrefix("-")})
 
     static var primaryCommand: String? {
-        return count(args) > 1 ? args[1].lowercaseString : nil
+        return args.count > 1 ? args[1].lowercaseString : nil
     }
 
 }
 
-
 let usageGlobalDescription = "Experimental one-step webcam capture and text composition for lolcommits."
 let usageGlobalSignature   = "Usage: \(programName) <command> [-hv]"
-let usageGlobalCommands = "\n".join([
+let usageGlobalCommands = [
     "Commands:",
     "  enable*              Enables \(programName) for current repository",
     "  disable*             Disable \(programName) for current repository",
@@ -35,23 +34,24 @@ let usageGlobalCommands = "\n".join([
     "  browse*              Opens a previous \(programName) image for review",
     "  config               Displays current configuration values and exits",
     "\n* = not yet implemented"
-])
-let usageGlobalOptions = "\n".join([
+].joinWithSeparator("\n")
+
+let usageGlobalOptions = [
     "Global options:",
     "  -h, --help           Show this help message and exit",
     "  -v, --version        Show the \(programName) version and exit",
     "  --debug              Enable DEBUG output"
-])
+].joinWithSeparator("\n")
 
 func usage() -> String {
-    return "\n\n".join([
+    return [
         usageGlobalSignature,
         usageGlobalCommands,
         usageGlobalOptions,
         "Use `\(programName) [command] --help` for more information about a command."
-    ])
+    ].joinWithSeparator("\n\n")
 }
-func printUsage() { println(usage()) }
+func printUsage() { print(usage()) }
 
 
 func processGlobalOpts(opts: [String]) {
@@ -61,7 +61,7 @@ func processGlobalOpts(opts: [String]) {
             printUsage()
             exit(0)
         case "-v", "--version":
-            println(programIdentifier)
+            print(programIdentifier)
             exit(0)
         case "--debug":
             DEBUG_MODE = true
@@ -74,7 +74,7 @@ func processGlobalOpts(opts: [String]) {
 
 func pending() {
     // TODO: remove me when no longer needed!
-    println("⚠️  UNDER CONSTRUCTION ...not yet implemented! ⚠️")
+    print("⚠️  UNDER CONSTRUCTION ...not yet implemented! ⚠️")
     exit(666)
 }
 
@@ -99,7 +99,7 @@ func main() {
             printUsage()
             exit(0)
         default:
-            println("unknown command: \(cmd)")
+            print("unknown command: \(cmd)")
             printUsage()
             exit(1)
         }
@@ -126,8 +126,8 @@ func defaultCommand() {
         return ps.stdout?.stringByTrimmingCharactersInSet(NSCharacterSet.newlineCharacterSet())
     }
     if let ppname = parentProcessName() where ppname == "git" {
-        println("parent is: \(ppname) (!)")
-        println("in the future we will execute an automatic capture process at this time")
+        print("parent is: \(ppname) (!)")
+        print("in the future we will execute an automatic capture process at this time")
         pending()
     }
 

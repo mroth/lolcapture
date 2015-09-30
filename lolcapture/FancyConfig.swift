@@ -67,7 +67,7 @@ struct FancyConfig {
             return nil
         }
         
-        enum Value: Printable {
+        enum Value: CustomStringConvertible {
             case StringValue(String?)
             case DoubleValue(Double?)
             case BoolValue(Bool?)
@@ -84,7 +84,7 @@ struct FancyConfig {
         }
         
         /// Where was the value for this `Option` determined from?
-        enum Source: Printable {
+        enum Source: CustomStringConvertible {
             /// Manually modified at runtime from outside of this library.
             case Manual
             /// Determined from a present environment variable in the shell.
@@ -137,7 +137,7 @@ struct FancyConfig {
         var environmentValue: Value? {
             if let
                 key = self.environmentVariable,
-                val = FancyConfig.environment[key] as? String
+                val = FancyConfig.environment[key]
             {
                 return defaultTypeMapper(val)
             }

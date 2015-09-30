@@ -6,7 +6,7 @@ class CaptureCommand {
 
     static let usageCommandDescription = "Captures an image for the most recent git commit."
     static let usageCommandSignature = "Usage: \(programName) capture [options] <destination>"
-    static let usageCommandOptions = "\n".join([
+    static let usageCommandOptions = [
         "Options:",
         "  -l, --list           List available capture devices and exit",
         "  --device=ID          Use specified capture device (matches name or id)",
@@ -14,19 +14,19 @@ class CaptureCommand {
         "  --msg=MSG            Message to be displayed across bottom of image",
         "  --sha=SHA            Hash to be displayed on top right of image",
         "  --warmup=N           Delay capture by N seconds (default: \(Config.delay))"
-    ])
+    ].joinWithSeparator("\n")
 
     class func usage() -> String {
-        return "\n\n".join([
+        return [
             usageCommandSignature,
             usageCommandDescription,
             usageCommandOptions,
             usageGlobalOptions
-            ])
+            ].joinWithSeparator("\n\n")
     }
 
     class func printUsage() {
-        println(usage())
+        print(usage())
     }
 
     /// dervied values related to the capture command options
@@ -75,38 +75,36 @@ class CaptureCommand {
         /// Destination that was (maybe) manually specified on the command line
         ///
         /// Normalizes both relative and absolute paths.
-        static var parsedDestinationFilePath: String? {
+        static var parsedDestinationFileURL: NSURL? {
             // MAYBE there is a destination file path specific by user
             // if so with current CLI structure it should be in r_argv[2]
             if Opts.args.endIndex >= 3 {
+                // manually bridge back to NSString to retain path methods
                 let parsedFileName = Opts.args[2]
 
-                // standardize the path to remove all junk
-                let standardPath = NSString(string: parsedFileName).stringByStandardizingPath
-
-                // if not an absolute path, prepend the current working directory
-                let absPath = NSString(string: parsedFileName).absolutePath
-                let cwd = NSFileManager.defaultManager().currentDirectoryPath
-                let parsedFilePath = absPath ? standardPath : cwd.stringByAppendingPathComponent(standardPath)
-                return parsedFilePath
+                // nsurl automatically converts to an absolute path if necessary
+                // smart enough to handle everything but tilde expansion (which
+                // msut be done with a nsstring method).  inconsistent...
+                return NSURL(fileURLWithPath: parsedFileName.NS.stringByExpandingTildeInPath)
             }
             return nil
         }
 
         /// Best guess at the name of the git repository. For now, this is just
         /// the basename of its worktree root.
-        static private var gitRepoName = GitInfo.currentWorktreeRoot()?.pathComponents.last
+        static private var gitRepoName = GitInfo.currentWorktreeRoot()?.pathComponents?.last
 
         /// Subdirectory within the destination where we will place the image file
-        static private var derivedDestinationContainerDir = gitRepoName ?? "uncategorized"
+        static private var derivedDestinationDirName = gitRepoName ?? "uncategorized"
 
         /// Derived destination directory based on options/config combo.
         ///
         /// May end up being overriden by a CLI parsed destination.
-        static private var derivedDestination: String {
-            let dir = testMode ? Config.testDestination.value! : Config.destination.value!
-            return dir.stringByExpandingTildeInPath
-                      .stringByAppendingPathComponent(derivedDestinationContainerDir)
+        static private var derivedDestinationDir: NSURL {
+            let parentDir = (testMode ? Config.testDestination.value! : Config.destination.value!)
+            let expandedParent = parentDir.NS.stringByExpandingTildeInPath
+            return NSURL(fileURLWithPath: expandedParent, isDirectory: true)
+                .URLByAppendingPathComponent(derivedDestinationDirName, isDirectory: true)
         }
 
         /// Derived filename to use when writing image.
@@ -116,18 +114,24 @@ class CaptureCommand {
         ///
         /// May end up being overriden by a CLI parsed destination.
         static private var derivedFileName: String {
-            return (finalSha ?? "snapshot").stringByAppendingPathExtension("jpg")!
+            // TODO: eventually this may be required to do via
+            // NSURL.URLbyAppendingPathExtension instead, but that seems like
+            // it would be too verbose because I just want the filename out the
+            // URL, so would be a lot of conversion.  So for now, just bridge
+            // back to NSString and use path methods.
+            let filenameBase = finalSha ?? "snapshot"
+            return filenameBase.NS.stringByAppendingPathExtension("jpg")!
         }
 
-        /// Derived destination file path where we will write the file, as long
+        /// Derived destination file URL where we will write the file, as long
         /// as we are not overriden by a CLI parsed manual destination.
-        static private var derivedDestinationFilePath: String {
-           return derivedDestination.stringByAppendingPathComponent(derivedFileName)
+        static private var derivedDestinationFileURL: NSURL {
+           return derivedDestinationDir.URLByAppendingPathComponent(derivedFileName)
         }
 
-        /// Actual destination file path where we will attempt to write
-        static var finalDestinationFilePath: String {
-            return parsedDestinationFilePath ?? derivedDestinationFilePath
+        /// Actual destination file URL where we will attempt to write
+        static var finalDestinationFileURL: NSURL {
+            return parsedDestinationFileURL ?? derivedDestinationFileURL
         }
 
         /// Manually specified device ID by the user
@@ -140,12 +144,12 @@ class CaptureCommand {
     /// certain options are actually mapped to actions that exit the process after
     /// completing.
     ///
-    /// :param: opts all dashed options parsed from the command line
+    /// - parameter opts: all dashed options parsed from the command line
     private class func processOpts(opts: [String]) {
         for opt in opts {
             let splitArg = opt.componentsSeparatedByString("=")
-            var argkey: String  = splitArg[0]
-            var argval: String? = splitArg.count > 1 ? splitArg[1] : nil
+            let argkey: String  = splitArg[0]
+            let argval: String? = splitArg.count > 1 ? splitArg[1] : nil
 
             switch argkey {
             case "-h", "--help":
@@ -174,7 +178,7 @@ class CaptureCommand {
                 break
             // otherwise, if we don't recognize it we should inform the user
             default:
-                println("Unknown option: \(opt)\n")
+                print("Unknown option: \(opt)\n")
                 printUsage()
                 exit(1)
             }
@@ -192,12 +196,11 @@ class CaptureCommand {
 
     /// Prints a formatted list of devices to STDOUT
     ///
-    /// :param: devices List of devices to print.
+    /// - parameter devices: List of devices to print.
     class func listDevices(devices: [AVCaptureDevice]?) {
-        if devices?.isEmpty == false {
-            for d in devices! {
-                println("📷 \(d.localizedName) [\(d.uniqueID)]")
-            }
+        guard let deviceList = devices else { return }
+        for d in deviceList {
+            print("📷 \(d.localizedName) [\(d.uniqueID)]")
         }
     }
 
@@ -205,12 +208,12 @@ class CaptureCommand {
     private class func deviceSelect() -> AVCaptureDevice {
         if let req = Options.requestedDeviceID { // user requested a specific device
             if let matches = CamSnapper.devicesMatchingString(req) {
-                if count(matches) == 1 {
+                if matches.count == 1 {
                     return matches.first!
                 } else {
-                    println("Multiple input devices matched your request: \(req)")
+                    print("Multiple input devices matched your request: \(req)")
                     listDevices(matches)
-                    println("\n... could you please be more specific?")
+                    print("\n... could you please be more specific?")
                     exit(1)
                 }
             }
@@ -220,7 +223,7 @@ class CaptureCommand {
         }
 
         // ruh roh, no camera found at all!
-        println("🚫 no matching capture devices found")
+        print("🚫 no matching capture devices found")
         exit(13)
     }
 
@@ -230,7 +233,7 @@ class CaptureCommand {
     /// and the filepath of the captured image will be the first argument.
     private class func runPostcaptureHookIfConfigured() {
         if let hook = Config.hookForPostCapture.value {
-            println("🔩 running postcapture hook: \(hook.lastPathComponent)")
+            print("🔩 running postcapture hook: \(hook.NS.lastPathComponent)")
             Logger.debug("going to run plugin: \(hook)")
             let NAMESPACE = programName.uppercaseString
 
@@ -239,10 +242,10 @@ class CaptureCommand {
             task.environment = [
                 "\(NAMESPACE)_COMMIT_MSG":  Options.finalMessage ?? "",
                 "\(NAMESPACE)_COMMIT_SHA":  Options.finalSha ?? "",
-                "\(NAMESPACE)_REPO_NAME":   Options.derivedDestinationContainerDir,
-                "\(NAMESPACE)_IMAGE":       Options.finalDestinationFilePath
+                "\(NAMESPACE)_REPO_NAME":   Options.derivedDestinationDirName,
+                "\(NAMESPACE)_IMAGE":       Options.finalDestinationFileURL.path!
             ]
-            task.arguments = [Options.finalDestinationFilePath]
+            task.arguments = [Options.finalDestinationFileURL.path!]
             task.launch()
             task.waitUntilExit()
             Logger.debug("plugin completed - status \(task.terminationStatus)")
@@ -262,57 +265,59 @@ class CaptureCommand {
 
         let camera = deviceSelect()
         Logger.debug("using capture device: \(camera)")
+        print("📷 \(programName) is preserving this moment in history…")
 
-        println("📷 \(programName) is preserving this moment in history…")
-        if let rawimagedata = CamSnapper.capture(warmupDelay: Config.delay.value!, camera: camera) {
-            if let lolimage = LOLImage(data: rawimagedata) {
-
-                lolimage.topMessage    = Options.finalSha
-                lolimage.bottomMessage = Options.finalMessage
-
-                if let cw  = Config.imageWidth.value, ch = Config.imageHeight.value {
-                    lolimage.desiredFinalWidth = CGFloat(cw)
-                    lolimage.desiredFinalHeight = CGFloat(ch)
-                }
-
-                // render the composited LOLimage
-                let renderedData = lolimage.render()
-                let destination = Options.finalDestinationFilePath
-
-                // create any needed intermediate directories for the destination
-                let parent = destination.stringByDeletingLastPathComponent
-                let success = NSFileManager().createDirectoryAtPath(
-                  parent, withIntermediateDirectories: true, attributes: nil, error: nil
-                )
-                Logger.debug("Making sure intermediate directories are present: \(success)")
-
-                // actually write the file
-                let writeSuccess = renderedData.writeToFile(destination, atomically: true)
-                if !writeSuccess {
-                    println("ERROR: failure writing to file: \(destination)")
-                    exit(1)
-                } else {
-                    println("✅ image written to \(destination)")
-                    runPostcaptureHookIfConfigured()
-
-                    Logger.debug("image successfully written to \(destination)")
-                }
-
-                // when in test mode, open the image for preview immediately
-                if Options.testMode {
-                    NSWorkspace.sharedWorkspace().openFile(destination)
-                }
-
-                // we're done, exit successfully
-                exit(0)
-            } else {
-                println("ERROR: Didn't understand the image data we got back from camera.")
-                exit(1)
-            }
-        } else {
-            println("ERROR: Unable to capture image from camera for some reason.")
+        guard let rawimagedata = CamSnapper.capture(Config.delay.value!, camera: camera) else {
+            print("ERROR: Unable to capture image from camera for some reason.")
             exit(1)
         }
+
+        guard let lolimage = LOLImage(data: rawimagedata) else {
+            print("ERROR: Didn't understand the image data we got back from camera.")
+            exit(1)
+        }
+
+        lolimage.topMessage    = Options.finalSha
+        lolimage.bottomMessage = Options.finalMessage
+
+        // override image dimensions from prefs if present
+        if let cw  = Config.imageWidth.value, ch = Config.imageHeight.value {
+            lolimage.desiredFinalWidth = CGFloat(cw)
+            lolimage.desiredFinalHeight = CGFloat(ch)
+        }
+
+        // render the composited LOLimage
+        let renderedData = lolimage.render()
+
+        // create any needed intermediate directories for the destination
+        let destination = Options.finalDestinationFileURL
+        let parent = destination.URLByDeletingLastPathComponent!
+        do {
+            try NSFileManager().createDirectoryAtURL(parent, withIntermediateDirectories: true,
+                                                     attributes: nil)
+        } catch {
+            print("ERROR: could not ensure presence of destination directory: \(parent)")
+            print("Error reason: \(error)")
+            exit(1)
+        }
+
+        // actually write the file
+        let writeSuccess = renderedData.writeToURL(destination, atomically: true)
+        if !writeSuccess {
+            print("ERROR: failure writing to file: \(destination)")
+            exit(1)
+        }
+        Logger.debug("image successfully written to \(destination)")
+        print("✅ image written to \(destination)")
+        runPostcaptureHookIfConfigured()
+
+        // when in test mode, open the image for preview immediately
+        if Options.testMode {
+            NSWorkspace.sharedWorkspace().openURL(destination)
+        }
+
+        // we're done, exit successfully
+        exit(0)
     }
 
 }
