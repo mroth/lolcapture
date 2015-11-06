@@ -105,7 +105,6 @@ class LOLImage: NSImage {
             img.drawInRect(frame)
 
             if let topText = self.formattedTextForTopMessage() {
-                let neededLinesToDraw = ceil(topText.size().width / availableWidth)
                 let topRect = NSRect(x: self.marginSize,
                                      y: 0,
                                      width: availableWidth,
